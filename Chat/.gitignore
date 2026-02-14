@@ -1,0 +1,53 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+.env/
+.venv/
+env/
+
+# Environment Files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Alembic
+alembic/versions/*.pyc
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Storage (Voice & TTS)
+storage/voice_uploads/*
+storage/tts_outputs/*
+!storage/.gitkeep
+
+# Test / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+*.tar
+docker-compose.override.yml
+
+# Misc
+*.env.bak
+*.pem

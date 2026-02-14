@@ -1,0 +1,26 @@
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+
+# Database
+sqlalchemy==2.0.30
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Redis
+redis==5.0.4
+
+# Auth
+python-jose[cryptography]==3.3.0
+
+# Config
+pydantic==2.7.1
+pydantic-settings==2.2.1
+
+# HTTP Client
+httpx==0.27.0
+
+# File Uploads
+python-multipart==0.0.9
+
+# Optional (TTS/STT local handling)
+aiofiles==23.2.1
