@@ -20,7 +20,7 @@ class MessageRepository:
             conversation_id=conversation_id,
             role=role,
             content=content,
-            metadata=metadata or {},
+            extra_metadata=metadata or {},
         )
         db.add(message)
         await db.commit()

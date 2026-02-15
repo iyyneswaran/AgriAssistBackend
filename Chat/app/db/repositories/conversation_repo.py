@@ -16,7 +16,7 @@ class ConversationRepository:
         conversation = Conversation(
             id=conversation_id,
             user_id=user_id,
-            metadata=metadata or {},
+            extra_metadata=metadata or {},
         )
         db.add(conversation)
         await db.commit()
