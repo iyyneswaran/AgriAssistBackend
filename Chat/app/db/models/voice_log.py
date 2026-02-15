@@ -27,7 +27,7 @@ class VoiceLog(Base):
 
     transcript: Mapped[str] = mapped_column(String, nullable=True)
 
-    metadata: Mapped[dict] = mapped_column(JSONB, default=dict)
+    extra_metadata: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
