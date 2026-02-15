@@ -39,9 +39,9 @@ app.include_router(admin_router, prefix="/api")
 async def startup_event():
     await init_db()
     await init_redis()
-    print("🚀 Agri AI Backend Started")
+    print("[OK] Agri AI Backend Started")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    print("🛑 Agri AI Backend Stopped")
+    print("[STOP] Agri AI Backend Stopped")
