@@ -1,3 +1,5 @@
+import ssl as ssl_module
+
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
@@ -10,10 +12,17 @@ from app.db.base import Base
 # IMPORTANT:
 # Neon/PostgreSQL async URL must use:
 # postgresql+asyncpg://
-DATABASE_URL = settings.DATABASE_URL.replace(
-    "postgresql://",
-    "postgresql+asyncpg://"
+# Also strip ?ssl=require / &ssl=require because asyncpg
+# does NOT understand it as a query-string param.
+DATABASE_URL = (
+    settings.DATABASE_URL
+    .replace("postgresql://", "postgresql+asyncpg://")
+    .replace("?ssl=require", "")
+    .replace("&ssl=require", "")
 )
+
+# asyncpg needs a real SSL context for Neon's TLS requirement
+ssl_context = ssl_module.create_default_context()
 
 
 engine = create_async_engine(
@@ -21,6 +30,7 @@ engine = create_async_engine(
     echo=settings.DEBUG,
     pool_size=10,
     max_overflow=20,
+    connect_args={"ssl": ssl_context},
 )
 
 

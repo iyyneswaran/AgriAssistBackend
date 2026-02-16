@@ -10,7 +10,8 @@ _request_log = defaultdict(list)
 
 
 def rate_limit_dependency(request: Request):
-    identifier = request.client.host
+    client = request.client
+    identifier = client.host if client else "unknown"
 
     now = time.time()
     window_start = now - WINDOW_SIZE

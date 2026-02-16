@@ -41,12 +41,16 @@ def verify_role(user: dict, required_role: str):
 
 # -------- WebSocket Authentication -------- #
 
-async def authenticate_websocket(websocket: WebSocket) -> dict:
+async def authenticate_websocket(websocket: WebSocket) -> dict | None:
+    """Authenticate a WebSocket connection that has already been accepted.
+    Returns the JWT payload dict on success, or None on failure (closes the WS).
+    """
     token = websocket.query_params.get("token")
 
     if not token:
+        await websocket.send_json({"type": "error", "detail": "Token missing"})
         await websocket.close(code=1008)
-        raise Exception("Token missing")
+        return None
 
     try:
         payload = jwt.decode(
@@ -57,5 +61,6 @@ async def authenticate_websocket(websocket: WebSocket) -> dict:
         return payload
 
     except JWTError:
+        await websocket.send_json({"type": "error", "detail": "Invalid or expired token"})
         await websocket.close(code=1008)
-        raise Exception("Invalid token")
+        return None

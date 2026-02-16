@@ -1,31 +1,28 @@
 from app.services.chat.translation_service import translate_text
 from app.services.chat.context_builder import build_context
 from app.core.config import settings
-import httpx
+from google import genai
+import asyncio
+import logging
 
+logger = logging.getLogger(__name__)
 
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+# Initialize the Gemini client once
+gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
+GEMINI_MODEL = "gemini-2.0-flash"
 
 
 async def call_gemini(prompt: str) -> str:
-    payload = {
-        "contents": [
-            {
-                "parts": [{"text": prompt}]
-            }
-        ]
-    }
-
-    params = {"key": settings.GEMINI_API_KEY}
-
-    async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(GEMINI_URL, json=payload, params=params)
-
-    data = response.json()
-
     try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception:
+        # google-genai SDK is sync, so run in thread to avoid blocking
+        response = await asyncio.to_thread(
+            gemini_client.models.generate_content,
+            model=GEMINI_MODEL,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        logger.error(f"Gemini API error: {type(e).__name__}: {e}")
         return "Sorry, I couldn't process your request."
 
 

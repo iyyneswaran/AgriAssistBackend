@@ -9,11 +9,18 @@ router = APIRouter()
 
 @router.websocket("/chat")
 async def chat_socket(websocket: WebSocket):
+    # Must accept the connection FIRST, then authenticate
+    await websocket.accept()
+
     user = await authenticate_websocket(websocket)
+    if user is None:
+        return
+
     user_id = user.get("sub")
     session_id = websocket.query_params.get("session_id")
 
     if not session_id:
+        await websocket.send_json({"type": "error", "detail": "session_id is required"})
         await websocket.close(code=1008)
         return
 
@@ -52,3 +59,4 @@ async def chat_socket(websocket: WebSocket):
 
     except WebSocketDisconnect:
         await manager.disconnect(user_id, session_id)
+
