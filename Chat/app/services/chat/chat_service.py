@@ -22,7 +22,13 @@ async def call_gemini(prompt: str) -> str:
         )
         return response.text
     except Exception as e:
+        error_msg = str(e)
         logger.error(f"Gemini API error: {type(e).__name__}: {e}")
+        
+        # Check for quota exhaustion
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+             return "I'm currently receiving too many requests. Please try again in a minute."
+             
         return "Sorry, I couldn't process your request."
 
 

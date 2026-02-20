@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize the Gemini client once
 gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = settings.GEMINI_MODEL
 
 
 async def translate_text(text: str, source_lang: str, target_lang: str) -> str:

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
 
     # Gemini
     GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
+    GEMINI_MODEL: str = "gemini-2.5-flash-lite"
 
     # Allowed CORS Origins
     ALLOWED_ORIGINS: List[str] = ["*"]
