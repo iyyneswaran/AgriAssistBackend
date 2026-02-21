@@ -22,7 +22,8 @@ httpx>=0.27.0
 # Gemini AI
 google-genai>=1.0.0
 
-# File Uploads
+# Pinecone Vector DB
+pinecone>=5.0.0
 python-multipart==0.0.9
 
 # Optional (TTS/STT local handling)

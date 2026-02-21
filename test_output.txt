@@ -1,0 +1,57 @@
+﻿python : C:\Users\Dheepa\One
+Drive\Desktop\AgriAssist_Bac
+kend\AgriAssistBackend\Chat\
+app\services\rag\ag_service.
+py:1: FutureWarning: 
+At line:1 char:117
++ ... ckend\Chat; python 
+Chat\test_rag.py > 
+test_final_run.log 2>&1; 
+python ...
++                 ~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo          
+    : NotSpecified    : 
+(C:\Users\Dheepa.    
+..FutureWarning: :S    
+tring) [], RemoteEx    
+ception
+    + FullyQualifiedErr    
+orId : NativeComman    
+dError
+ 
+
+All support for the 
+`google.generativeai` 
+package has ended. It will 
+no longer be receiving 
+updates or bug fixes. 
+Please switch to the 
+`google.genai` package as 
+soon as possible.
+See README for more details:
+
+https://github.com/google-ge
+mini/deprecated-generative-a
+i-python/blob/main/README.md
+
+  import 
+google.generativeai as genai
+Querying: 'What are the benefits of the Seed Multiplication Scheme?'...
+
+--- Final Answer From LLM ---
+
+The Seed Multiplication Scheme aims to encourage farmers by providing an incentive for all the seeds they produce. If you produce and supply seeds to the Department of Agriculture on a contract basis, you are eligible to enroll and register your seed farms under this program.
+
+Specifically, for Paddy, Millets, and Pulses, there is a premium provided for the production of Certified class seeds at Rs. 2/- per Kg of seed.
+
+Once your produce is inspected and moved to a Seed Processing Unit, you will initially be paid 90% of the Minimum Support Price (MSP) as declared by the Civil Supplies Department. Please note that you will need to bear the transport cost for moving the seed to the Seed Processing Unit.
+
+For more information and to register, you can contact the Assistant Agricultural Officer at the Village Level.
+
+--- Source Documents Retrieved ---
+
+Title: 1 Agriculture schemes (Part 1), Score: 0.884
+Title: 1 Agriculture schemes (Part 5), Score: 0.8397
+Title: 1 Agriculture schemes (Part 46), Score: 0.835

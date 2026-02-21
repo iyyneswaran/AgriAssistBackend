@@ -1,0 +1,2 @@
+Failed to ingest chunk 0 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 1 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}

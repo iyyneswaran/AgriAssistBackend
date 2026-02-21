@@ -1,0 +1,284 @@
+﻿python : C:\Users\Dheep
+a\OneDrive\Desktop\Agri
+Assist_Backend\AgriAssi
+stBackend\Chat\app\serv
+ices\rag\ingestion_serv
+ice.py:5: 
+FutureWarning: 
+At line:1 char:47
++ ... HONPATH=Chat; 
+python 
+Chat/run_ingestion.py 
+> ingestion_debug.log 
+2>&1
++                   ~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~
+    + CategoryInfo     
+         : 
+NotSpecified: (C:\    
+Users\Dheepa...FutureW 
+   arning: :String) 
+[], R    emoteException
+    + 
+FullyQualifiedErrorI   
+ d : NativeCommandError
+ 
+
+All support for the 
+`google.generativeai` 
+package has ended. It 
+will no longer be 
+receiving 
+updates or bug fixes. 
+Please switch to the 
+`google.genai` package 
+as soon as possible.
+See README for more 
+details:
+
+https://github.com/goog
+le-gemini/deprecated-ge
+nerative-ai-python/blob
+/main/README.md
+
+  import 
+google.generativeai as 
+genai
+Starting automated ingestion process...
+Clearing vector store index...
+Traceback (most recent 
+call last):
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\Chat\run_inges
+tion.py", line 28, in 
+<module>
+    asyncio.run(main())
+  File "C:\Program File
+s\Python311\Lib\asyncio
+\runners.py", line 
+190, in run
+    return 
+runner.run(main)
+           
+^^^^^^^^^^^^^^^^
+  File "C:\Program File
+s\Python311\Lib\asyncio
+\runners.py", line 
+118, in run
+    return self._loop.r
+un_until_complete(task)
+           ^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program File
+s\Python311\Lib\asyncio
+\base_events.py", line 
+653, in 
+run_until_complete
+    return 
+future.result()
+           
+^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\Chat\run_inges
+tion.py", line 23, in 
+main
+    await 
+service.clear_index()
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\Chat\app\servi
+ces\rag\ingestion_servi
+ce.py", line 150, in 
+clear_index
+    await self.vector_s
+tore.delete_all()
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\Chat\app\integ
+rations\pinecone\pineco
+ne_store.py", line 78, 
+in delete_all
+    self.index.delete(d
+elete_all=True)
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\utils
+\error_handling.py", 
+line 42, in inner_func
+    raise e from e
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\utils
+\error_handling.py", 
+line 27, in inner_func
+    return func(*args, 
+**kwargs)
+           
+^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\db_da
+ta\index.py", line 
+818, in delete
+    result = self._vect
+or_api.delete_vectors(
+             ^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\endpoint.py"
+, line 102, in __call__
+    return 
+self.callable(self, 
+*args, **kwargs)
+           ^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
+^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\core\
+openapi\db_data\api\vec
+tor_operations_api.py",
+ line 109, in 
+__delete_vectors
+    Dict[str, Any] | 
+ApplyResult[Dict[str, 
+Any]], self.call_with_h
+ttp_info(**kwargs)
+                       
+                       
+    ^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\endpoint.py"
+, line 134, in 
+call_with_http_info
+    return self.api_cli
+ent.call_api(
+           ^^^^^^^^^^^^
+^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\api_client.p
+y", line 320, in 
+call_api
+    return 
+self.__call_api(
+           
+^^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\api_client.p
+y", line 185, in 
+__call_api
+    raise e
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\api_client.p
+y", line 173, in 
+__call_api
+    response_data = 
+self.request(
+                    
+^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\api_client.p
+y", line 400, in 
+request
+    return 
+self.rest_client.POST(
+           
+^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\rest_utils.p
+y", line 146, in POST
+    return 
+self.request(
+           
+^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\rest_urllib3
+.py", line 270, in 
+request
+    return raise_except
+ions_or_return(r)
+           ^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\Dheepa
+\OneDrive\Desktop\AgriA
+ssist_Backend\AgriAssis
+tBackend\venv\Lib\site-
+packages\pinecone\opena
+pi_support\rest_utils.p
+y", line 44, in raise_e
+xceptions_or_return
+    raise NotFoundExcep
+tion(http_resp=r)
+pinecone.exceptions.exc
+eptions.NotFoundExcepti
+on: (404)
+Reason: Not Found
+HTTP response headers: 
+HTTPHeaderDict({'Date':
+ 'Sat, 21 Feb 2026 
+21:13:58 GMT', 
+'Content-Type': 
+'application/json', 
+'Content-Length': 
+'55', 'Connection': 
+'keep-alive', 'x-pineco
+ne-request-latency-ms':
+ '27', 'x-envoy-upstrea
+m-service-time': '28', 
+'x-pinecone-response-du
+ration-ms': '30', 
+'server': 'envoy'})
+HTTP response body: {"c
+ode":5,"message":"Names
+pace not 
+found","details":[]}
+

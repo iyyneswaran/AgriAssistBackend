@@ -1,0 +1,10 @@
+﻿details:
+
+https://github.com/google-g
+emini/deprecated-generative
+-ai-python/blob/main/README
+.md
+
+  import 
+google.generativeai as 
+genai

@@ -1,0 +1,128 @@
+﻿python : C:\Users\Dheepa
+\OneDrive\Desktop\AgriAs
+sist_Backend\AgriAssistB
+ackend\Chat\app\services
+\rag\embedding_service.p
+y:3: FutureWarning: 
+At line:1 char:117
++ ... ckend\Chat; 
+python 
+Chat\run_ingestion.py > 
+ingestion_run.log 2>&1; 
+ty ...
++                 ~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo      
+        : NotSpecified  
+  : (C:\Users\Dheepa.   
+ ..FutureWarning: :S    
+tring) [], RemoteEx    
+ception
+    + FullyQualifiedErr 
+   orId : NativeComman  
+  dError
+ 
+
+All support for the 
+`google.generativeai` 
+package has ended. It 
+will no longer be 
+receiving 
+updates or bug fixes. 
+Please switch to the 
+`google.genai` package 
+as soon as possible.
+See README for more 
+details:
+
+https://github.com/googl
+e-gemini/deprecated-gene
+rative-ai-python/blob/ma
+in/README.md
+
+  import 
+google.generativeai as 
+genai
+Starting automated ingestion process...
+Starting ingestion from C:\Users\Dheepa\OneDrive\Desktop\AgriAssist_Backend\AgriAssistBackend\Chat\data\rag_documents...
+Processing 1_Agriculture schemes.txt...
+Ingesting 76 chunks for 1 Agriculture schemes...
+Failed to ingest chunk 0 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 1 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 2 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 3 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 4 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 5 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 6 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 7 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 8 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 9 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 10 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 11 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 12 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 13 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 14 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 15 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 16 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 17 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 18 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 19 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 20 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 21 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 22 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 23 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 24 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 25 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 26 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 27 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 28 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 29 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 30 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 31 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 32 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 33 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 34 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 35 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 36 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 37 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 38 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 39 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 40 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 41 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 42 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 43 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 44 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 45 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 46 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 47 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 48 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 49 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 50 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 51 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 52 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 53 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 54 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 55 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 56 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 57 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 58 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 59 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 60 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 61 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 62 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 63 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 64 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 65 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 66 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 67 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 68 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 69 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 70 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 71 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 72 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 73 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 74 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Failed to ingest chunk 75 of 1 Agriculture schemes: {'message': 'expected 768 dimensions, not 3072', 'code': '22000', 'hint': None, 'details': None}
+Ingestion complete.
+Ingestion process finished.

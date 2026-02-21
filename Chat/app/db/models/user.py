@@ -19,6 +19,8 @@ class User(Base):
     phone_number: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.FARMER)
     region: Mapped[str] = mapped_column(String(100), nullable=True)
+    crop_type: Mapped[str] = mapped_column(String(100), nullable=True)
+    land_size: Mapped[float] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow
     )
