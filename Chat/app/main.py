@@ -12,6 +12,8 @@ from app.db.session import init_db
 from app.services.redis.session_store import init_redis
 import traceback
 import logging
+from app.api.http.geo import router as geo_router
+
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +52,7 @@ app.include_router(chat_ws_router, prefix="/ws")
 app.include_router(voice_router, prefix="/api")
 app.include_router(offline_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
+app.include_router(geo_router)
 
 
 @app.on_event("startup")

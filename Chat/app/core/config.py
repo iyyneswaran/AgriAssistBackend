@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     # Allowed CORS Origins
     ALLOWED_ORIGINS: List[str] = ["*"]
 
+    # Google Earth Engine
+    GOOGLE_APPLICATION_CREDENTIALS: str | None = None
+    GEE_SERVICE_ACCOUNT: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True
