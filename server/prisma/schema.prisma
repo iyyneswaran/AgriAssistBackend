@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =========================
+// ENUMS
+// =========================
+
+enum MessageSender {
+  USER
+  AI
+  SYSTEM
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  DOCUMENT
+  VOICE
+}
+
+enum ConversationStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum UserRole {
+  FARMER
+  ADMIN
+}
+
+enum InterfaceType {
+  HELPLINE
+  SOFTWARE
+  SOFTWARE_WITH_HARDWARE
+}
+
+enum CropAssignmentStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+
+// =========================
+// USER
+// =========================
+
+model User {
+  id          String        @id @default(uuid())
+  phoneNumber String        @unique
+  name        String?
+  role        UserRole      @default(FARMER)
+  interface   InterfaceType
+  createdAt   DateTime      @default(now())
+
+  farmer        Farmer?
+  conversations AIConversation[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+// =========================
+// FARMER
+// =========================
+
+model Farmer {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  preferredLanguage  String
+  notificationPref   String
+
+  user               User     @relation(fields: [userId], references: [id])
+  land               Land?
+
+  @@map("farmers")
+}
+
+// =========================
+// LAND (Single Land)
+// =========================
+
+model Land {
+  id          String   @id @default(uuid())
+  farmerId    String   @unique
+  name        String
+  totalArea   Float
+  soilType    String
+
+  // Embedded Location
+  latitude    Float
+  longitude   Float
+  district    String
+  state       String
+
+  farmer      Farmer   @relation(fields: [farmerId], references: [id])
+  fields      Field[]
+
+  @@map("lands")
+}
+
+// =========================
+// FIELD
+// =========================
+
+model Field {
+  id        String   @id @default(uuid())
+  landId    String
+  name      String
+  area      Float
+
+  land      Land     @relation(fields: [landId], references: [id])
+  crops     CropAssignment[]
+  conversations AIConversation[]
+
+  @@map("fields")
+}
+
+// =========================
+// CROP (Reference)
+// =========================
+
+model Crop {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  growthDays Int
+
+  assignments CropAssignment[]
+
+  @@map("crops")
+}
+
+// =========================
+// CROP ASSIGNMENT
+// =========================
+
+model CropAssignment {
+  id          String   @id @default(uuid())
+  fieldId     String
+  cropId      String
+  sowingDate  DateTime
+  harvestDate DateTime?
+  status      CropAssignmentStatus @default(ACTIVE)
+
+  field       Field    @relation(fields: [fieldId], references: [id])
+  crop        Crop     @relation(fields: [cropId], references: [id])
+  conversations AIConversation[]
+
+  @@map("crop_assignments")
+}
+
+// =========================
+// AI CONVERSATION (Metadata Only)
+// =========================
+
+model AIConversation {
+  id                 String   @id @default(uuid())
+  userId             String
+  fieldId            String?
+  cropAssignmentId   String?
+  status             ConversationStatus @default(ACTIVE)
+  startedAt          DateTime @default(now())
+  endedAt            DateTime?
+
+  user               User     @relation(fields: [userId], references: [id])
+  field              Field?   @relation(fields: [fieldId], references: [id])
+  cropAssignment     CropAssignment? @relation(fields: [cropAssignmentId], references: [id])
+
+  messages           AIChatMessage[]
+
+  @@index([userId])
+  @@index([fieldId])
+  @@map("ai_conversations")
+}
+
+// =========================
+// AI CHAT MESSAGE
+// =========================
+
+model AIChatMessage {
+  id               String   @id @default(uuid())
+  conversationId   String
+  sender           MessageSender
+  messageType      MessageType
+
+  // Text content (for TEXT & AI replies)
+  textContent      String?  @db.Text
+
+  // File storage path (for IMAGE, DOCUMENT, VOICE)
+  filePath         String?
+
+  // Metadata
+  fileName         String?
+  mimeType         String?
+  fileSizeBytes    Int?
+
+  createdAt        DateTime @default(now())
+
+  conversation     AIConversation @relation(fields: [conversationId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@map("ai_chat_messages")
+}
+
+// =========================
+// AUDIT LOG
+// =========================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+

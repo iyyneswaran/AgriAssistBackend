@@ -1,4 +1,4 @@
-from sqlalchemy import String, DateTime, ForeignKey, Enum
+from sqlalchemy import String, DateTime, ForeignKey, Enum, Integer, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
@@ -6,30 +6,41 @@ import enum
 from app.db.base import Base
 
 
-class MessageRole(str, enum.Enum):
+class MessageSender(str, enum.Enum):
     USER = "USER"
-    ASSISTANT = "ASSISTANT"
+    AI = "AI"
     SYSTEM = "SYSTEM"
 
 
+class MessageType(str, enum.Enum):
+    TEXT = "TEXT"
+    IMAGE = "IMAGE"
+    DOCUMENT = "DOCUMENT"
+    VOICE = "VOICE"
+
+
 class Message(Base):
-    __tablename__ = "messages"
+    __tablename__ = "ai_chat_messages"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
 
-    conversation_id: Mapped[str] = mapped_column(
+    conversationId: Mapped[str] = mapped_column(
         String,
-        ForeignKey("conversations.id", ondelete="CASCADE"),
+        ForeignKey("ai_conversations.id", ondelete="CASCADE"),
         nullable=False,
     )
 
-    role: Mapped[MessageRole] = mapped_column(Enum(MessageRole), nullable=False)
+    sender: Mapped[MessageSender] = mapped_column(Enum(MessageSender), nullable=False)
+    messageType: Mapped[MessageType] = mapped_column(Enum(MessageType), nullable=False)
 
-    content: Mapped[str] = mapped_column(String, nullable=False)
+    textContent: Mapped[str] = mapped_column(Text, nullable=True)
+    filePath: Mapped[str] = mapped_column(String, nullable=True)
+    
+    fileName: Mapped[str] = mapped_column(String, nullable=True)
+    mimeType: Mapped[str] = mapped_column(String, nullable=True)
+    fileSizeBytes: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    extra_metadata: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
-
-    created_at: Mapped[datetime] = mapped_column(
+    createdAt: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,
     )

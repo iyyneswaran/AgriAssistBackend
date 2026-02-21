@@ -1,0 +1,1 @@
+{"version":3,"file":"truecallerService.d.ts","sourceRoot":"","sources":["../../src/services/truecallerService.ts"],"names":[],"mappings":"AAEA,oBAAY,UAAU;IAClB,MAAM,WAAW;IACjB,UAAU,eAAe;CAC5B;AAED,MAAM,WAAW,iBAAiB;IAC9B,IAAI,EAAE,MAAM,CAAC;IACb,MAAM,EAAE,UAAU,CAAC;CACtB;AAED,qBAAa,iBAAiB;IAC1B;;;OAGG;WACU,YAAY,CAAC,WAAW,EAAE,MAAM,GAAG,OAAO,CAAC,iBAAiB,GAAG,IAAI,CAAC;CAqCpF"}

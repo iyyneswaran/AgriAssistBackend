@@ -46,6 +46,12 @@ async def get_db() -> AsyncSession:
         yield session
 
 
+from app.db.models.user import User  # noqa: E402, F401
+from app.db.models.conversation import Conversation  # noqa: E402, F401
+from app.db.models.message import Message  # noqa: E402, F401
+from app.db.models.sensor_data import SensorData  # noqa: E402, F401
+from app.db.models.voice_log import VoiceLog  # noqa: E402, F401
+
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.db.models.message import Message, MessageRole
+from app.db.models.message import Message, MessageSender, MessageType
 from typing import List, Optional
 
 
@@ -11,16 +11,15 @@ class MessageRepository:
         db: AsyncSession,
         message_id: str,
         conversation_id: str,
-        role: MessageRole,
+        sender: MessageSender,
         content: str,
-        metadata: dict | None = None,
     ) -> Message:
         message = Message(
             id=message_id,
-            conversation_id=conversation_id,
-            role=role,
-            content=content,
-            extra_metadata=metadata or {},
+            conversationId=conversation_id,
+            sender=sender,
+            messageType=MessageType.TEXT,
+            textContent=content,
         )
         db.add(message)
         await db.commit()
@@ -45,8 +44,8 @@ class MessageRepository:
     ) -> List[Message]:
         result = await db.execute(
             select(Message)
-            .where(Message.conversation_id == conversation_id)
-            .order_by(Message.created_at.desc())
+            .where(Message.conversationId == conversation_id)
+            .order_by(Message.createdAt.desc())
             .limit(limit)
         )
         return list(reversed(result.scalars().all()))

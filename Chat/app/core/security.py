@@ -22,7 +22,7 @@ def decode_jwt_token(token: str) -> dict:
 def get_current_user(token: str) -> dict:
     payload = decode_jwt_token(token)
 
-    if "sub" not in payload:
+    if "id" not in payload and "sub" not in payload:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
