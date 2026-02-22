@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # Gemini
     GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
+    GEMINI_EMBEDDING_MODEL: str = "text-embedding-004"
 
     # Allowed CORS Origins
     ALLOWED_ORIGINS: List[str] = ["*"]
@@ -30,9 +31,18 @@ class Settings(BaseSettings):
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None
     GEE_SERVICE_ACCOUNT: str | None = None
 
+    # Pinecone
+    PINECONE_API_KEY: str | None = Field(None, env="PINECONE_API_KEY")
+    PINECONE_INDEX_NAME: str | None = Field("agriassist", env="PINECONE_INDEX_NAME")
+
+    # Supabase (Optional/Deprecated)
+    SUPABASE_URL: str | None = None
+    SUPABASE_SERVICE_ROLE_KEY: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"
 
 
 settings = Settings()
