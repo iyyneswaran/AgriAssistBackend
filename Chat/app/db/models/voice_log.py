@@ -18,7 +18,7 @@ class VoiceLog(Base):
 
     conversation_id: Mapped[str] = mapped_column(
         String,
-        ForeignKey("conversations.id", ondelete="SET NULL"),
+        ForeignKey("ai_conversations.id", ondelete="SET NULL"),
         nullable=True,
     )
 
