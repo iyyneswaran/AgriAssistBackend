@@ -25,7 +25,7 @@ class Conversation(Base):
     fieldId: Mapped[str] = mapped_column(String, nullable=True)
     cropAssignmentId: Mapped[str] = mapped_column(String, nullable=True)
 
-    status: Mapped[ConversationStatus] = mapped_column(Enum(ConversationStatus), default=ConversationStatus.ACTIVE)
+    status: Mapped[ConversationStatus] = mapped_column(Enum(ConversationStatus, name="ConversationStatus"), default=ConversationStatus.ACTIVE)
 
     startedAt: Mapped[datetime] = mapped_column(
         DateTime,

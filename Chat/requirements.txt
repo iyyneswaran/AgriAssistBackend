@@ -28,3 +28,8 @@ python-multipart==0.0.9
 # Optional (TTS/STT local handling)
 aiofiles==23.2.1
 
+# Audio Processing (Voice AI)
+soundfile>=0.12.0
+pydub>=0.25.0
+huggingface-hub>=0.20.0
+gTTS>=2.5.0

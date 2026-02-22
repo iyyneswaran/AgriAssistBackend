@@ -30,8 +30,8 @@ class Message(Base):
         nullable=False,
     )
 
-    sender: Mapped[MessageSender] = mapped_column(Enum(MessageSender), nullable=False)
-    messageType: Mapped[MessageType] = mapped_column(Enum(MessageType), nullable=False)
+    sender: Mapped[MessageSender] = mapped_column(Enum(MessageSender, name="MessageSender"), nullable=False)
+    messageType: Mapped[MessageType] = mapped_column(Enum(MessageType, name="MessageType"), nullable=False)
 
     textContent: Mapped[str] = mapped_column(Text, nullable=True)
     filePath: Mapped[str] = mapped_column(String, nullable=True)

@@ -11,7 +11,10 @@ export const getMyConversations = async (req: Request, res: Response) => {
         const user = req.user as Payload;
         const { page, limit, fieldId, cropAssignmentId } = req.query as any;
 
-        const skip = (page - 1) * limit;
+        const pageNum = parseInt(page as string) || 1;
+        const limitNum = parseInt(limit as string) || 10;
+
+        const skip = (pageNum - 1) * limitNum;
 
         const where: any = { userId: user.id };
         if (fieldId) where.fieldId = fieldId;
@@ -21,7 +24,7 @@ export const getMyConversations = async (req: Request, res: Response) => {
             db.aIConversation.findMany({
                 where,
                 skip,
-                take: limit,
+                take: limitNum,
                 orderBy: { startedAt: 'desc' },
                 include: {
                     field: { select: { name: true } },
@@ -35,9 +38,9 @@ export const getMyConversations = async (req: Request, res: Response) => {
             data: conversations,
             pagination: {
                 total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
             }
         });
 
@@ -55,7 +58,10 @@ export const getConversationMessages = async (req: Request, res: Response) => {
         const { conversationId } = req.params;
         const { page, limit } = req.query as any;
 
-        const skip = (page - 1) * limit;
+        const pageNum = parseInt(page as string) || 1;
+        const limitNum = parseInt(limit as string) || 10;
+
+        const skip = (pageNum - 1) * limitNum;
 
         // 1. Verify ownership
         const conversation = await db.aIConversation.findFirst({
@@ -74,7 +80,7 @@ export const getConversationMessages = async (req: Request, res: Response) => {
             db.aIChatMessage.findMany({
                 where: { conversationId: conversationId as string },
                 skip,
-                take: limit,
+                take: limitNum,
                 orderBy: { createdAt: 'asc' } // Linear chat flow
             }),
             db.aIChatMessage.count({
@@ -86,9 +92,9 @@ export const getConversationMessages = async (req: Request, res: Response) => {
             data: messages,
             pagination: {
                 total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit)
+                page: pageNum,
+                limit: limitNum,
+                totalPages: Math.ceil(total / limitNum)
             }
         });
 
@@ -155,5 +161,42 @@ export const addMessage = async (req: Request, res: Response) => {
         res.status(201).json(message);
     } catch (err: any) {
         res.status(500).json({ message: `Failed to add message: ${err.message}` });
+    }
+};
+
+/**
+ * Delete an AI Conversation and all its messages
+ */
+export const deleteConversation = async (req: Request, res: Response) => {
+    try {
+        const user = req.user as Payload;
+        const { conversationId } = req.params;
+
+        // 1. Verify ownership
+        const conversation = await db.aIConversation.findFirst({
+            where: {
+                id: conversationId,
+                userId: user.id
+            }
+        });
+
+        if (!conversation) {
+            return res.status(404).json({ message: "Conversation not found or access denied" });
+        }
+
+        // 2. The cascade delete in Prisma (if configured) or manual delete will remove messages.
+        // Assuming Prisma schema has onDelete: "CASCADE" for aIChatMessages, but we can manually delete them to be safe
+        await db.aIChatMessage.deleteMany({
+            where: { conversationId }
+        });
+
+        // 3. Delete the parent conversation
+        await db.aIConversation.delete({
+            where: { id: conversationId }
+        });
+
+        res.status(200).json({ message: "Conversation deleted successfully" });
+    } catch (err: any) {
+        res.status(500).json({ message: `Failed to delete conversation: ${err.message}` });
     }
 };

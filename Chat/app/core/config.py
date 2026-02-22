@@ -31,6 +31,13 @@ class Settings(BaseSettings):
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None
     GEE_SERVICE_ACCOUNT: str | None = None
 
+    # HuggingFace (Voice AI)
+    HUGGINGFACE_API_KEY: str | None = Field(None, env="HUGGINGFACE_API_KEY")
+    STT_MODEL_ID: str = "ai4bharat/indic-conformer-600m-multilingual"
+    TTS_MODEL_ID: str = "ai4bharat/indic-parler-tts"
+    VOICE_LANGUAGE: str = "ta"
+    TTS_VOICE_DESCRIPTION: str = "Jaya speaks in a clear and expressive tone with moderate speed. The recording is very clear audio."
+
     # Pinecone
     PINECONE_API_KEY: str | None = Field(None, env="PINECONE_API_KEY")
     PINECONE_INDEX_NAME: str | None = Field("agriassist", env="PINECONE_INDEX_NAME")

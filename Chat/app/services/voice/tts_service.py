@@ -1,30 +1,45 @@
-import httpx
+"""
+TTS Service — gTTS (Google Translate Text-to-Speech)
+Supports Tamil, Hindi, Malayalam, English, Telugu, Kannada, Marathi.
+No API key required. Fast and reliable.
+"""
+
+import logging
+import asyncio
+from gtts import gTTS
 from app.services.voice.audio_processor import generate_tts_output_path
 
+logger = logging.getLogger(__name__)
 
-COQUI_TTS_URL = "http://localhost:5002/api/tts"
+# gTTS language codes (same as ISO 639-1 for most Indic languages)
+SUPPORTED_LANGS = {"ta", "hi", "ml", "en", "te", "kn", "mr"}
 
 
-async def text_to_speech(text: str, language: str) -> str:
+async def text_to_speech(text: str, language: str | None = None) -> str:
     """
-    Calls local Coqui TTS server and stores generated audio file.
-    Returns file path.
+    Converts text to speech using gTTS (Google Translate TTS).
+    Supports: Tamil (ta), Hindi (hi), Malayalam (ml), English (en),
+              Telugu (te), Kannada (kn), Marathi (mr).
+
+    Returns file path to the generated MP3 file.
     """
+    lang = language if language in SUPPORTED_LANGS else "en"
+    output_path = generate_tts_output_path(extension="mp3")
 
-    output_path = generate_tts_output_path()
+    logger.info(f"[TTS] Generating speech for '{text[:50]}...' in lang={lang}")
 
-    payload = {
-        "text": text,
-        "language": language,
-        "speaker_id": "default"
-    }
+    # gTTS is synchronous — run in thread pool
+    loop = asyncio.get_event_loop()
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(COQUI_TTS_URL, json=payload)
+    def _generate():
+        tts = gTTS(text=text, lang=lang, slow=False)
+        tts.save(output_path)
 
-    audio_bytes = response.content
+    try:
+        await loop.run_in_executor(None, _generate)
+    except Exception as e:
+        logger.error(f"[TTS] gTTS error: {e}")
+        raise RuntimeError(f"TTS failed: {e}")
 
-    with open(output_path, "wb") as f:
-        f.write(audio_bytes)
-
+    logger.info(f"[TTS] Audio saved to {output_path}")
     return output_path
