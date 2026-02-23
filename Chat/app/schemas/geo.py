@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class GeoAnalyzeRequest(BaseModel):
-    farmer_id: str
+    farmer_id: Optional[str] = None
     latitude: float
     longitude: float
 
