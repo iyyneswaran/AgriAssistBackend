@@ -15,7 +15,7 @@ class NDVIService:
         geometry = self.ee.Geometry.Point([longitude, latitude]).buffer(100)
 
         collection = (
-            self.ee.ImageCollection("COPERNICUS/S2_SR")
+            self.ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
             .filterBounds(geometry)
             .filterDate(start_date.strftime("%Y-%m-%d"),
                         end_date.strftime("%Y-%m-%d"))

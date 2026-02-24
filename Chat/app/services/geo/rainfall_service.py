@@ -27,7 +27,7 @@ class RainfallService:
             .filterBounds(geometry)
             .filter(self.ee.Filter.date(start_date - timedelta(hours=24), start_date)) # Get recent model runs
             .filter(self.ee.Filter.rangeContains('forecast_time', forecast_start, forecast_end)) # Get future predictions
-            .select("total_precipitation_surface")
+            .select("precipitation_rate")
         )
 
         # Sum the precipitation forecasts over the period
@@ -41,7 +41,11 @@ class RainfallService:
         )
 
         stats_dict = stats.getInfo()
-        rainfall_value = stats_dict.get("total_precipitation_surface") if stats_dict else None
+        rate_sum = stats_dict.get("precipitation_rate") if stats_dict else None
+        
+        # precipitation_rate is in kg/m^2/s (mm/s).
+        # Assuming GFS0P25 provides 3-hourly forecasts, we multiply the sum of rates by 10800 seconds
+        rainfall_value = rate_sum * 10800 if rate_sum is not None else 0
 
         return {
             "forecast_rainfall_mm": round(rainfall_value, 2) if rainfall_value is not None else 0,

@@ -25,12 +25,12 @@ class TemperatureService:
             .filterBounds(geometry)
             .filter(self.ee.Filter.date(start_date - timedelta(hours=24), start_date)) # Get recent model runs
             .filter(self.ee.Filter.rangeContains('forecast_time', forecast_start, forecast_end)) # Get future predictions
-            .select(["maximum_temperature_2m_above_ground", "minimum_temperature_2m_above_ground"])
+            .select("temperature_2m_above_ground")
         )
 
         # Get absolute max and absolute min temperatures over the 4-day forecast period
-        max_temp_image = collection.select("maximum_temperature_2m_above_ground").max()
-        min_temp_image = collection.select("minimum_temperature_2m_above_ground").min()
+        max_temp_image = collection.max()
+        min_temp_image = collection.min()
 
         max_stats = max_temp_image.reduceRegion(
             reducer=self.ee.Reducer.mean(),
@@ -46,8 +46,8 @@ class TemperatureService:
             maxPixels=1e9
         ).getInfo()
 
-        max_temp = max_stats.get("maximum_temperature_2m_above_ground") if max_stats else None
-        min_temp = min_stats.get("minimum_temperature_2m_above_ground") if min_stats else None
+        max_temp = max_stats.get("temperature_2m_above_ground") if max_stats else None
+        min_temp = min_stats.get("temperature_2m_above_ground") if min_stats else None
 
         return {
             "max_temp_celsius": round(max_temp, 2) if max_temp is not None else None,

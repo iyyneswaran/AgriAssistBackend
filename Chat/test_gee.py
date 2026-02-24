@@ -39,14 +39,20 @@ if count > 0:
     print("Max Temp Stats:", stats)
     
     # Try the rainfall reduction
-    rain_image = filtered.select("total_precipitation_surface").sum()
+    rain_image = filtered.select("precipitation_rate").sum()
     rain_stats = rain_image.reduceRegion(
         reducer=ee.Reducer.mean(),
         geometry=geom,
         scale=5000,
         maxPixels=1e9
     ).getInfo()
-    print("Rainfall sum stats:", rain_stats)
+    
+    # Scale from kg/m^2/s to mm (assuming 3 hr intervals)
+    if rain_stats and "precipitation_rate" in rain_stats:
+        print("Raw Rainfall sum stats (rate):", rain_stats)
+        print("Estimated Total Rainfall (mm):", rain_stats["precipitation_rate"] * 10800)
+    else:
+        print("Rainfall stats unavailable.")
 
 
 
