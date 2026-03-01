@@ -10,10 +10,10 @@ app.use(cors({
   credentials: true,
 }));
 
-// Global rate limiter: 100 requests per 15 minutes
+// Global rate limiter: 500 requests per 15 minutes
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: 'Too many requests from this IP, please try again later.',
 });
 
