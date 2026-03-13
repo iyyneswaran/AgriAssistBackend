@@ -1,7 +1,7 @@
 from .ndvi_service import NDVIService
 from .rainfall_service import RainfallService
 from .temperature_service import TemperatureService
-
+from .farm_metrics_service import FarmMetricsService
 
 class GeoAnalysisService:
 
@@ -9,11 +9,13 @@ class GeoAnalysisService:
         self.ndvi_service = NDVIService()
         self.rainfall_service = RainfallService()
         self.temperature_service = TemperatureService()
+        self.farm_metrics_service = FarmMetricsService()
 
     def analyze(self, latitude: float, longitude: float):
         ndvi_data = self.ndvi_service.calculate_ndvi(latitude, longitude)
         rainfall_data = self.rainfall_service.get_rainfall_forecast(latitude, longitude)
         temperature_data = self.temperature_service.get_temperature_forecast(latitude, longitude)
+        farm_metrics = self.farm_metrics_service.get_metrics(latitude, longitude)
 
         alerts = self._generate_alerts(
             rainfall_data.get("forecast_rainfall_mm"),
@@ -25,6 +27,7 @@ class GeoAnalysisService:
             "ndvi": ndvi_data,
             "rainfall_forecast": rainfall_data,
             "temperature_forecast": temperature_data,
+            "farm_metrics": farm_metrics,
             "alerts": alerts
         }
 

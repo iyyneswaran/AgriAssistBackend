@@ -12,4 +12,5 @@ class GeoAnalyzeResponse(BaseModel):
     ndvi: dict
     rainfall_forecast: dict
     temperature_forecast: dict
+    farm_metrics: dict
     alerts: List[str]
