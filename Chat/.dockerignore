@@ -1,0 +1,8 @@
+__pycache__
+*.pyc
+venv
+env
+current_reqs.txt
+.env
+.git
+.vscode

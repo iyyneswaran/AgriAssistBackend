@@ -14,6 +14,7 @@ export const registerLand = async (req: Request, res: Response) => {
         const {
             name, totalArea, areaUnit, soilType,
             latitude, longitude, district, state,
+            corners, plantedCropManual,
             preferredLanguage, notificationPref
         } = req.body;
 
@@ -59,7 +60,9 @@ export const registerLand = async (req: Request, res: Response) => {
                 latitude,
                 longitude,
                 district,
-                state
+                state,
+                corners,
+                plantedCropManual
             }
         });
 

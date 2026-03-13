@@ -98,6 +98,8 @@ model Land {
   longitude   Float
   district    String
   state       String
+  corners     Json?    // Optional JSON array to store multiple boundary coordinates {lat, lng}[]
+  plantedCropManual String?  // User-typed crop name (manual entry)
 
   farmer      Farmer   @relation(fields: [farmerId], references: [id])
   fields      Field[]
