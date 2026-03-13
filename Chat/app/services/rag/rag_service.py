@@ -1,47 +1,52 @@
 from google import genai
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any
-from app.db.models.user import User
 from app.core.config import settings
 
 from app.services.rag.embedding_service import EmbeddingService
 from app.services.rag.retriever import Retriever
+from app.services.rag.scheme_ranker import SchemeRanker
 
 
 class RagService:
     """
     Orchestrates RAG pipeline for scheme recommendation.
+    Works with a farm_context dict instead of User ORM model.
     """
 
     def __init__(self):
         self.embedding_service = EmbeddingService()
         self.retriever = Retriever()
+        self.ranker = SchemeRanker()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.model_name = settings.GEMINI_MODEL
 
-    async def build_user_context(self, user: User) -> str:
+    def build_user_context(self, farm_context: Dict[str, Any]) -> str:
         """
-        Build structured context string for embedding.
+        Build structured context string for embedding from farm context dict.
         """
+        parts = []
+        if farm_context.get("crop"):
+            parts.append(f"Primary crop: {farm_context['crop']}")
+        if farm_context.get("soil_type"):
+            parts.append(f"Soil type: {farm_context['soil_type']}")
+        if farm_context.get("area_acres"):
+            parts.append(f"Land size: {farm_context['area_acres']} acres")
+        if farm_context.get("state"):
+            parts.append(f"State: {farm_context['state']}")
+        if farm_context.get("district"):
+            parts.append(f"District: {farm_context['district']}")
 
-        context_parts = [
-            f"Farmer region: {user.region}",
-            f"Primary crop: {user.crop_type}",
-            f"Land size: {user.land_size} acres",
-        ]
-
-        return "\n".join(context_parts)
+        return "\n".join(parts) if parts else "Indian farmer seeking agricultural schemes"
 
     async def recommend_schemes(
         self,
         query: str,
-        user: User,
-        db: AsyncSession,
-        top_k: int = 5,
+        farm_context: Dict[str, Any],
+        top_k: int = 8,
     ) -> Dict[str, Any]:
         """
         Full RAG flow:
-        1. Build user context
+        1. Build user context from farm_context dict
         2. Embed query + context
         3. Retrieve similar schemes
         4. Apply ranking/filtering
@@ -49,7 +54,7 @@ class RagService:
         """
 
         # 1️⃣ Build contextual query
-        user_context = await self.build_user_context(user)
+        user_context = self.build_user_context(farm_context)
 
         enriched_query = f"""
         User Query:
@@ -70,8 +75,8 @@ class RagService:
             top_k=top_k,
         )
 
-        # 4️⃣ Post-filtering / ranking (optional logic)
-        ranked_results = self._rank_results(results, user)
+        # 4️⃣ Post-filtering / ranking using farm context
+        ranked_results = self.ranker.rank(results, farm_context)
 
         # 5️⃣ Generate Final Answer using context
         context_text = self._build_retrieved_context(ranked_results)
@@ -81,24 +86,6 @@ class RagService:
             "answer": final_answer,
             "source_documents": ranked_results
         }
-
-    def _rank_results(self, results: List[dict], user: User) -> List[dict]:
-        """
-        Additional scoring layer based on region & crop match.
-        """
-
-        for item in results:
-            score = item.get("similarity", 0)
-
-            if item.get("region") == user.region:
-                score += 0.05
-
-            if item.get("crop_type") == user.crop_type:
-                score += 0.05
-
-            item["final_score"] = round(score, 4)
-
-        return sorted(results, key=lambda x: x["final_score"], reverse=True)
 
     def _build_retrieved_context(self, results: List[dict]) -> str:
         """
@@ -111,7 +98,14 @@ class RagService:
         for i, item in enumerate(results):
             title = item.get("title", f"Document {i+1}")
             desc = item.get("description", "")
-            context_parts.append(f"--- Source: {title} ---\n{desc}\n")
+            eligibility = item.get("eligibility", "")
+            benefit = item.get("benefit_amount", "")
+            context_parts.append(
+                f"--- Scheme: {title} ---\n"
+                f"Description: {desc}\n"
+                f"Eligibility: {eligibility}\n"
+                f"Benefit: {benefit}\n"
+            )
             
         return "\n".join(context_parts)
 
@@ -119,7 +113,7 @@ class RagService:
         """
         Calls Gemini LLM to generate the final response.
         """
-        prompt = f"""You are an agricultural assistant AI helping farmers.
+        prompt = f"""You are an agricultural assistant AI helping Indian farmers find relevant government schemes.
 Use the provided Context Information to answer the User Query.
 Ensure the answer is tailored to the Farmer Context if applicable.
 If the Context Information does not contain the answer, say "I don't have enough information on that specific topic based on available agricultural schemes." Do not hallucinate schemes.
@@ -133,7 +127,10 @@ Context Information:
 User Query:
 {query}
 
-Answer clearly and concisely, focusing on practical advice or steps the farmer can take according to the schemes.
+Provide a concise summary of relevant schemes available for this farmer. Focus on:
+1. Which schemes match the farmer's crop, region, and farm size
+2. Key benefits and eligibility criteria
+3. Any specific steps the farmer should take to avail these schemes
 """
         try:
             response = await self.client.aio.models.generate_content(

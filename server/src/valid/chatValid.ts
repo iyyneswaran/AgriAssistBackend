@@ -41,8 +41,9 @@ export const startConversationValidation = validate(z.object({
 
 export const addMessageValidation = validate(z.object({
     body: z.object({
-        sender: z.enum(['USER', 'AI', 'SYSTEM']),
-        messageType: z.enum(['TEXT', 'IMAGE', 'DOCUMENT', 'VOICE']),
+        sender: z.enum(['USER', 'AI', 'SYSTEM']).optional(),
+        messageType: z.enum(['TEXT', 'IMAGE', 'DOCUMENT', 'VOICE']).optional(),
+        language: z.string().optional(),
         textContent: z.string().optional(),
         filePath: z.string().optional(),
         fileName: z.string().optional(),

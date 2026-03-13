@@ -1,35 +1,50 @@
-from app.services.chat.translation_service import translate_text
 from app.services.chat.context_builder import build_context
 from app.core.config import settings
-from google import genai
-import asyncio
+import httpx
 import logging
 
 logger = logging.getLogger(__name__)
 
-# Initialize the Gemini client once
-gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-GEMINI_MODEL = "gemini-2.0-flash"
 
-
-async def call_gemini(prompt: str) -> str:
+async def call_pollinations(prompt: str) -> str:
+    """
+    Calls Pollination AI's OpenAI-compatible endpoint for English text chat.
+    """
     try:
-        # google-genai SDK is sync, so run in thread to avoid blocking
-        response = await asyncio.to_thread(
-            gemini_client.models.generate_content,
-            model=GEMINI_MODEL,
-            contents=prompt,
+        url = "https://text.pollinations.ai/openai"
+
+        system_prompt = (
+            "You are AgriAssist, a friendly and knowledgeable AI assistant for Indian farmers. "
+            "You help with crop advice, pest management, soil health, weather guidance, and government schemes. "
+            "Keep your answers clear, short, and practical — like talking to a fellow farmer. "
+            "Use simple English. Use bullet points when listing steps or tips. "
+            "Always be encouraging and supportive."
         )
-        return response.text
+
+        payload = {
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ],
+            "model": "openai"
+        }
+
+        headers = {}
+        if settings.POLLINATION_API_KEY:
+            headers["Authorization"] = f"Bearer {settings.POLLINATION_API_KEY}"
+
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+
+    except httpx.TimeoutException:
+        logger.error("Pollinations API timeout")
+        return "Sorry, the AI is taking too long to respond. Please try again."
     except Exception as e:
-        error_msg = str(e)
-        logger.error(f"Gemini API error: {type(e).__name__}: {e}")
-        
-        # Check for quota exhaustion
-        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
-             return "I'm currently receiving too many requests. Please try again in a minute."
-             
-        return "Sorry, I couldn't process your request."
+        logger.error(f"Pollinations API error: {type(e).__name__}: {e}")
+        return "Sorry, I couldn't process your request right now. Please try again in a moment."
 
 
 async def generate_ai_response(
@@ -38,26 +53,18 @@ async def generate_ai_response(
     language: str,
     content: str,
 ) -> str:
-    # Step 1: Normalize to English
-    english_text = await translate_text(content, language, "English")
-
-    # Step 2: Context enrichment (dummy values for now)
+    """
+    Generates an AI response for the user's chat message.
+    """
+    # Build context prompt with farm data
     enriched_prompt = await build_context(
         crop="Paddy",
         temperature=34,
         moisture="Low",
         weather="No rain forecast",
-        user_question=english_text,
+        user_question=content,
     )
 
-    # Step 3: Gemini reasoning
-    english_response = await call_gemini(enriched_prompt)
-
-    # Step 4: Translate back to original language
-    final_response = await translate_text(
-        english_response,
-        "English",
-        language,
-    )
-
-    return final_response
+    # Call Pollinations AI
+    response = await call_pollinations(enriched_prompt)
+    return response

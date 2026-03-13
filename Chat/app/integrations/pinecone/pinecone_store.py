@@ -21,17 +21,25 @@ class PineconeStore:
         region: str,
         crop_type: str,
         embedding: List[float],
+        benefit_amount: str = "",
+        scheme_id: str = "",
     ):
         """
         Upserts a scheme chunk and its metadata into Pinecone.
         """
         metadata = {
             "title": title,
-            "description": description,
+            "description": description[:950] if len(description) > 950 else description,  # Pinecone metadata size limit
             "eligibility": eligibility,
             "region": region,
             "crop_type": crop_type,
         }
+        
+        # Add optional fields if present
+        if benefit_amount:
+            metadata["benefit_amount"] = benefit_amount
+        if scheme_id:
+            metadata["scheme_id"] = scheme_id
         
         # Pinecone upsert format: list of tuples (id, vector, metadata)
         self.index.upsert(vectors=[(vector_id, embedding, metadata)])
@@ -53,7 +61,7 @@ class PineconeStore:
         results = []
         for match in response.matches:
             # Reconstruct the dictionary expected by RagService
-            item = match.metadata
+            item = dict(match.metadata) if match.metadata else {}
             item["similarity"] = match.score
             item["id"] = match.id
             results.append(item)

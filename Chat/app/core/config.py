@@ -22,7 +22,10 @@ class Settings(BaseSettings):
     # Gemini
     GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
-    GEMINI_EMBEDDING_MODEL: str = "text-embedding-004"
+    GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-001"
+
+    # Pollinations AI
+    POLLINATION_API_KEY: str | None = Field(None, env="POLLINATION_API_KEY")
 
     # Allowed CORS Origins
     ALLOWED_ORIGINS: List[str] = ["*"]

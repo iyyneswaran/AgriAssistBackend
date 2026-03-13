@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../db';
 import { Payload } from '../types/type';
+import axios from 'axios';
 
 /**
  * List paginated AI Conversations for the user
@@ -55,7 +56,7 @@ export const getMyConversations = async (req: Request, res: Response) => {
 export const getConversationMessages = async (req: Request, res: Response) => {
     try {
         const user = req.user as Payload;
-        const { conversationId } = req.params;
+        const conversationId = req.params.conversationId as string;
         const { page, limit } = req.query as any;
 
         const pageNum = parseInt(page as string) || 1;
@@ -135,8 +136,11 @@ export const startConversation = async (req: Request, res: Response) => {
 export const addMessage = async (req: Request, res: Response) => {
     try {
         const user = req.user as Payload;
-        const { conversationId } = req.params;
+        const conversationId = req.params.conversationId as string;
         const messageData = req.body;
+        
+        // Extract language or default to English
+        const language = messageData.language || 'en';
 
         // 1. Verify ownership of the conversation
         const conversation = await db.aIConversation.findFirst({
@@ -150,15 +154,69 @@ export const addMessage = async (req: Request, res: Response) => {
             return res.status(404).json({ message: "Conversation not found or access denied" });
         }
 
-        // 2. Create message
-        const message = await db.aIChatMessage.create({
+        // 2. Create USER message
+        const userMessage = await db.aIChatMessage.create({
             data: {
                 conversationId,
-                ...messageData
+                sender: 'USER',
+                messageType: messageData.messageType || 'TEXT',
+                textContent: messageData.textContent,
+                filePath: messageData.filePath || null
             }
         });
 
-        res.status(201).json(message);
+        // 3. Make HTTP call to Python backend for AI Response
+        // Forwarding the user's token directly isn't strictly necessary if python backend trusts this network,
+        // but we'll include the raw text content for the reasoning.
+        try {
+            const aiResponse = await axios.post('http://localhost:8001/api/chat/generate', {
+                message: messageData.textContent,
+                language: language,
+                session_id: conversationId
+            }, {
+                headers: {
+                    'Authorization': req.headers.authorization || '' // pass-through JWT
+                }
+            });
+
+            const aiResponseText = aiResponse.data.response;
+
+            // 4. Create AI message
+            const aiMessage = await db.aIChatMessage.create({
+                data: {
+                    conversationId,
+                    sender: 'AI',
+                    messageType: 'TEXT',
+                    textContent: aiResponseText,
+                }
+            });
+
+            // Return both messages so the UI can quickly update
+            res.status(201).json({
+                userMessage,
+                aiMessage
+            });
+            return;
+        } catch (pythonErr: any) {
+            console.error("Failed to generate AI response:", pythonErr.message);
+            
+            // Still create a fallback error message from AI 
+            const errorAiMessage = await db.aIChatMessage.create({
+                data: {
+                    conversationId,
+                    sender: 'AI',
+                    messageType: 'TEXT',
+                    textContent: "Sorry, I couldn't process your request right now. Please try again.",
+                }
+            });
+
+            res.status(201).json({
+                userMessage,
+                aiMessage: errorAiMessage
+            });
+            return;
+        }
+
     } catch (err: any) {
         res.status(500).json({ message: `Failed to add message: ${err.message}` });
     }
@@ -170,7 +228,7 @@ export const addMessage = async (req: Request, res: Response) => {
 export const deleteConversation = async (req: Request, res: Response) => {
     try {
         const user = req.user as Payload;
-        const { conversationId } = req.params;
+        const conversationId = req.params.conversationId as string;
 
         // 1. Verify ownership
         const conversation = await db.aIConversation.findFirst({
