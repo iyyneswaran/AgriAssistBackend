@@ -1,12 +1,21 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, Header
 from typing import Optional
+import logging
 
-from app.services.rag.rag_service import RagService
 from app.core.security import get_current_user
 
 router = APIRouter(prefix="/schemes", tags=["Schemes"])
 
-rag_service = RagService()
+logger = logging.getLogger(__name__)
+rag_service = None
+
+
+def get_rag_service():
+    global rag_service
+    if rag_service is None:
+        from app.services.rag.rag_service import RagService
+        rag_service = RagService()
+    return rag_service
 
 
 @router.get("/recommend")
@@ -50,7 +59,8 @@ async def recommend_schemes(
         
         query = " ".join(query_parts) if query_parts else "agricultural schemes for Indian farmers"
 
-        recommendations = await rag_service.recommend_schemes(
+        service = get_rag_service()
+        recommendations = await service.recommend_schemes(
             query=query,
             farm_context=farm_context,
             top_k=top_k,
@@ -62,5 +72,11 @@ async def recommend_schemes(
             "data": recommendations,
         }
 
+    except ModuleNotFoundError as e:
+        logger.error(f"Schemes dependency missing: {e}")
+        raise HTTPException(status_code=503, detail=f"Schemes feature dependency missing: {str(e)}")
+    except (EnvironmentError, RuntimeError, ValueError) as e:
+        logger.error(f"Schemes service unavailable: {e}")
+        raise HTTPException(status_code=503, detail=f"Schemes service unavailable: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
