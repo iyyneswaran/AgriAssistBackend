@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     # Pollinations AI
     POLLINATION_API_KEY: str | None = Field(None, env="POLLINATION_API_KEY")
 
-    # Allowed CORS Origins
-    ALLOWED_ORIGINS: List[str] = ["*"]
+    # Allowed CORS Origins (comma separated)
+    ALLOWED_ORIGINS: str = "*"
 
     # Google Earth Engine
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None
