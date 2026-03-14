@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Expose port
+# Expose port (optional on Railway as it handles it dynamically)
 EXPOSE 8001
 
-# Start the FastAPI application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# Start the FastAPI application (Use shell form to read $PORT from Railway, fallback to 8001)
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8001}
