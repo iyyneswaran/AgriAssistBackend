@@ -33,6 +33,8 @@ class Settings(BaseSettings):
     # Google Earth Engine
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None
     GEE_SERVICE_ACCOUNT: str | None = None
+    GEE_CREDENTIALS_JSON: str | None = Field(None, env="GEE_CREDENTIALS_JSON")
+    GEE_CREDENTIALS_B64: str | None = Field(None, env="GEE_CREDENTIALS_B64")
 
     # HuggingFace (Voice AI)
     HUGGINGFACE_API_KEY: str | None = Field(None, env="HUGGINGFACE_API_KEY")
