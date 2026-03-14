@@ -169,7 +169,8 @@ export const addMessage = async (req: Request, res: Response) => {
         // Forwarding the user's token directly isn't strictly necessary if python backend trusts this network,
         // but we'll include the raw text content for the reasoning.
         try {
-            const aiResponse = await axios.post('http://localhost:8001/api/chat/generate', {
+            const pythonUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8001';
+            const aiResponse = await axios.post(`${pythonUrl}/api/chat/generate`, {
                 message: messageData.textContent,
                 language: language,
                 session_id: conversationId
