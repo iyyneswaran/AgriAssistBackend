@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(..., env="DATABASE_URL")
 
     # Redis
-    REDIS_URL: str = Field(..., env="REDIS_URL")
+    REDIS_URL: str | None = Field(None, env="REDIS_URL")
 
     # Gemini
     GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
