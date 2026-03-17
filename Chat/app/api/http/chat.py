@@ -16,18 +16,20 @@ class ChatRequest(BaseModel):
 @router.post("/generate")
 async def generate_chat_response(request: ChatRequest):
     """
-    Internal HTTP endpoint for AI chat generation via Pollinations AI.
+    Internal HTTP endpoint for AI chat generation via Sarvam AI.
     Called by the Express server (which already authenticates the user).
+    Sarvam-m natively responds in the user's language.
     """
     try:
-        response_text = await generate_ai_response(
+        # Get AI Response natively
+        final_response = await generate_ai_response(
             user_id="internal",
             session_id=request.session_id,
-            language=request.language,
+            language=request.language or "en",
             content=request.message,
         )
         
-        return {"response": response_text}
+        return {"response": final_response}
     except Exception as e:
         logger.error(f"Chat generation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate AI response")

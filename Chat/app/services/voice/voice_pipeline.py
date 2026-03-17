@@ -48,6 +48,8 @@ async def process_voice_request(
             "audio_path": None,
         }
 
+    from app.services.chat.translation_service import translate_text
+
     # Step 4: AI Reasoning (Unified Chat Brain)
     logger.info("[Voice Pipeline] Generating AI response...")
     ai_text_response = await generate_ai_response(
@@ -58,16 +60,24 @@ async def process_voice_request(
     )
     logger.info(f"[Voice Pipeline] AI response: '{ai_text_response[:80]}...'")
 
+    # Step 4.5: Translate English AI response back to detected language
+    logger.info(f"[Voice Pipeline] Translating response to {detected_lang}...")
+    translated_response = await translate_text(
+        text=ai_text_response,
+        source_lang="en-IN",
+        target_lang=detected_lang
+    )
+
     # Step 5: Text to Speech
     logger.info("[Voice Pipeline] Running TTS...")
     tts_audio_path = await text_to_speech(
-        text=ai_text_response,
+        text=translated_response,
         language=detected_lang,
     )
     logger.info(f"[Voice Pipeline] TTS output: {tts_audio_path}")
 
     return {
-        "recognized_text": user_text,
-        "response_text": ai_text_response,
+        "recognized_text": user_text,  # The translated english user prompt
+        "response_text": translated_response, # The target language response text
         "audio_path": tts_audio_path,
     }

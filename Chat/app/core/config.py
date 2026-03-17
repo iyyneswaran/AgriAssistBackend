@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # Pollinations AI
     POLLINATION_API_KEY: str | None = Field(None, env="POLLINATION_API_KEY")
 
+    # Sarvam AI
+    SARWAM_API_KEY: str | None = Field(None, env="SARWAM_API_KEY")
+
     # Allowed CORS Origins (comma separated)
     ALLOWED_ORIGINS: str = "*"
 

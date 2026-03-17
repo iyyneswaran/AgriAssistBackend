@@ -5,41 +5,69 @@ No API key required. Fast and reliable.
 """
 
 import logging
-import asyncio
-from gtts import gTTS
+import base64
+import httpx
+from app.core.config import settings
 from app.services.voice.audio_processor import generate_tts_output_path
 
 logger = logging.getLogger(__name__)
 
-# gTTS language codes (same as ISO 639-1 for most Indic languages)
-SUPPORTED_LANGS = {"ta", "hi", "ml", "en", "te", "kn", "mr"}
-
-
 async def text_to_speech(text: str, language: str | None = None) -> str:
     """
-    Converts text to speech using gTTS (Google Translate TTS).
-    Supports: Tamil (ta), Hindi (hi), Malayalam (ml), English (en),
-              Telugu (te), Kannada (kn), Marathi (mr).
-
-    Returns file path to the generated MP3 file.
+    Converts text to speech using Sarvam AI.
+    Expected language code format: 'hi-IN', 'ta-IN'.
+    Returns file path to the generated WAV file.
     """
-    lang = language if language in SUPPORTED_LANGS else "en"
-    output_path = generate_tts_output_path(extension="mp3")
+    lang = language if language else "en-IN"
+    # Sarvam typically returns WAV audio
+    output_path = generate_tts_output_path(extension="wav")
 
-    logger.info(f"[TTS] Generating speech for '{text[:50]}...' in lang={lang}")
+    if not settings.SARWAM_API_KEY:
+        logger.warning("SARWAM_API_KEY missing, skipping TTS.")
+        return output_path
 
-    # gTTS is synchronous — run in thread pool
-    loop = asyncio.get_event_loop()
+    logger.info(f"[TTS] Generating speech for '{text[:50]}...' in lang={lang} via Sarvam AI")
 
-    def _generate():
-        tts = gTTS(text=text, lang=lang, slow=False)
-        tts.save(output_path)
+    url = "https://api.sarvam.ai/text-to-speech"
+    headers = {
+        "api-subscription-key": settings.SARWAM_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "inputs": [text],
+        "target_language_code": lang,
+        "speaker": "ritu",
+        "pace": 1.0,
+        "speech_sample_rate": 8000,
+        "enable_preprocessing": True,
+        "model": "bulbul:v3"
+    }
 
     try:
-        await loop.run_in_executor(None, _generate)
-    except Exception as e:
-        logger.error(f"[TTS] gTTS error: {e}")
-        raise RuntimeError(f"TTS failed: {e}")
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(url, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
 
-    logger.info(f"[TTS] Audio saved to {output_path}")
-    return output_path
+            audios = data.get("audios", [])
+            if not audios:
+                raise ValueError("No audio returned from Sarvam AI")
+
+            audio_base64 = audios[0]
+            audio_bytes = base64.b64decode(audio_base64)
+            
+            with open(output_path, "wb") as f:
+                f.write(audio_bytes)
+
+            logger.info(f"[TTS] Audio saved to {output_path}")
+            return output_path
+
+    except httpx.HTTPError as e:
+        logger.error(f"[TTS] Sarvam TTS HTTP error: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+             logger.error(f"[TTS] Response: {e.response.text}")
+        raise RuntimeError(f"TTS failed: {e}")
+    except Exception as e:
+        logger.error(f"[TTS] Sarvam TTS error: {type(e).__name__}: {e}")
+        raise RuntimeError(f"TTS failed: {e}")

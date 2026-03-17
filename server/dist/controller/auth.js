@@ -4,7 +4,6 @@ exports.refresh = exports.verifyOTP = exports.requestOTP = void 0;
 const db_1 = require("../db");
 const jwt_1 = require("../valid/jwt");
 const otpService_1 = require("../services/otpService");
-const truecallerService_1 = require("../services/truecallerService");
 /**
  * Request OTP for authentication.
  * If user doesn't exist, it still sends OTP to prevent account enumeration
@@ -13,24 +12,8 @@ const truecallerService_1 = require("../services/truecallerService");
 const requestOTP = async (req, res) => {
     try {
         const { phoneNumber } = req.body;
-        const otp = otpService_1.OTPService.generateOTP();
-        const otpHash = await otpService_1.OTPService.hashOTP(otp);
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-        await db_1.db.oTP.upsert({
-            where: { phoneNumber },
-            update: {
-                otpHash,
-                expiresAt,
-                attempts: 0,
-            },
-            create: {
-                phoneNumber,
-                otpHash,
-                expiresAt,
-            },
-        });
-        // Send OTP via stub (Future: Twilio)
-        await otpService_1.OTPService.sendOTP(phoneNumber, otp);
+        // Send OTP via Twilio Verify
+        await otpService_1.OTPService.sendVerification(phoneNumber);
         res.status(200).json({
             message: 'OTP sent successfully',
         });
@@ -46,40 +29,20 @@ exports.requestOTP = requestOTP;
 const verifyOTP = async (req, res) => {
     try {
         const { phoneNumber, otp } = req.body;
-        const storedOtp = await db_1.db.oTP.findUnique({
-            where: { phoneNumber },
-        });
-        if (!storedOtp) {
-            return res.status(400).json({ message: 'No OTP requested for this number' });
-        }
-        if (new Date() > storedOtp.expiresAt) {
-            return res.status(400).json({ message: 'OTP has expired' });
-        }
-        if (storedOtp.attempts >= 3) {
-            return res.status(400).json({ message: 'Too many failed attempts. Please request a new OTP' });
-        }
-        const isValid = await otpService_1.OTPService.verifyOTP(otp, storedOtp.otpHash);
+        const isValid = await otpService_1.OTPService.checkVerification(phoneNumber, otp);
         if (!isValid) {
-            await db_1.db.oTP.update({
-                where: { phoneNumber },
-                data: { attempts: { increment: 1 } },
-            });
-            return res.status(400).json({ message: 'Invalid OTP' });
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
         }
-        // OTP is valid - clear it
-        await db_1.db.oTP.delete({ where: { phoneNumber } });
         // Handle User creation or login
         let user = await db_1.db.user.findUnique({
             where: { phoneNumber },
         });
         if (!user) {
-            // New User Flow: Try Truecaller stub
-            const profile = await truecallerService_1.TruecallerService.fetchProfile(phoneNumber);
+            // New User Flow
             user = await db_1.db.user.create({
                 data: {
                     phoneNumber,
-                    name: profile?.name || null,
-                    nameSource: profile?.source || null,
+                    name: null,
                     interface: 'SOFTWARE', // Default for new users via phone
                     role: 'FARMER',
                 },
@@ -100,7 +63,6 @@ const verifyOTP = async (req, res) => {
                 name: user.name,
                 role: user.role,
                 phoneNumber: user.phoneNumber,
-                nameSource: user.nameSource,
             },
         });
     }

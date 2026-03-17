@@ -4,44 +4,60 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OTPService = void 0;
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const twilio_1 = __importDefault(require("twilio"));
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+const client = (0, twilio_1.default)(accountSid, authToken);
 /**
  * OTP Service
  *
- * Handles generation, hashing, and verification of OTPs.
- * Designed to be modular so that Twilio or other SMS providers
- * can be integrated by replacing the sendOTP method.
+ * Handles generation, delivery, and verification of OTPs via Twilio Verify.
  */
 class OTPService {
     /**
-     * Generates a 6-digit numeric OTP.
+     * Sends a verification code via Twilio Verify.
      */
-    static generateOTP() {
-        return Math.floor(100000 + Math.random() * 900000).toString();
+    static async sendVerification(phoneNumber) {
+        try {
+            if (!verifyServiceSid) {
+                console.warn(`[TWILIO STUB] Would send OTP to ${phoneNumber} if credentials were set.`);
+                return;
+            }
+            await client.verify.v2.services(verifyServiceSid)
+                .verifications
+                .create({ to: phoneNumber, channel: 'sms' });
+            console.log(`[TWILIO] Verification sent to ${phoneNumber}`);
+        }
+        catch (error) {
+            console.error(`[TWILIO] Error sending verification: ${error.message}`);
+            throw new Error(`Failed to send verification code: ${error.message}`);
+        }
     }
     /**
-     * Hashes the OTP for secure storage.
+     * Checks a verification code via Twilio Verify.
      */
-    static async hashOTP(otp) {
-        return bcryptjs_1.default.hash(otp, this.BCRYPT_SALT_ROUNDS);
+    static async checkVerification(phoneNumber, code) {
+        try {
+            if (!verifyServiceSid) {
+                console.warn(`[TWILIO STUB] Verifying ${code} for ${phoneNumber} (STUB: always true if code is '123456')`);
+                return code === '123456';
+            }
+            const verificationCheck = await client.verify.v2.services(verifyServiceSid)
+                .verificationChecks
+                .create({ to: phoneNumber, code });
+            return verificationCheck.status === 'approved';
+        }
+        catch (error) {
+            console.error(`[TWILIO] Error checking verification: ${error.message}`);
+            return false;
+        }
     }
-    /**
-     * Verifies the provided OTP against the stored hash.
-     */
-    static async verifyOTP(otp, hashedOtp) {
-        return bcryptjs_1.default.compare(otp, hashedOtp);
-    }
-    /**
-     * Simulates sending an OTP via SMS.
-     * INTEGRATION POINT: Replace this logic with Twilio SDK call later.
-     */
-    static async sendOTP(phoneNumber, otp) {
-        console.log(`[SMS STUB] Sending OTP ${otp} to ${phoneNumber}`);
-        // Future Twilio Integration:
-        // await twilioClient.messages.create({ body: `Your OTP is ${otp}`, to: phoneNumber, from: '...' });
-    }
+    // Deprecated methods for compatibility or internal use if needed
+    static generateOTP() { return ''; }
+    static async hashOTP(otp) { return ''; }
+    static async verifyOTP(otp, hashedOtp) { return false; }
+    static async sendOTP(phoneNumber, otp) { }
 }
 exports.OTPService = OTPService;
-OTPService.OTP_LENGTH = 6;
-OTPService.BCRYPT_SALT_ROUNDS = 10;
 //# sourceMappingURL=otpService.js.map
