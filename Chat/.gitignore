@@ -54,3 +54,16 @@ docker-compose.override.yml
 
 
 app/credentials/
+
+
+# tests
+test_apis.py
+test_gee.py
+test_gemini.py
+test_hf_models.py
+test_native_stt.py
+test_pipeline.py
+test_pollinations.py
+test_sarvam_llm.py
+test_sarvam.py
+test_voice.py
