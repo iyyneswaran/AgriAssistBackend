@@ -57,6 +57,8 @@ app/credentials/
 
 
 # tests
+test_*.py
+*_test.txt
 test_apis.py
 test_gee.py
 test_gemini.py
