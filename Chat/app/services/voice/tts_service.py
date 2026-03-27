@@ -12,6 +12,16 @@ from app.services.voice.audio_processor import generate_tts_output_path
 
 logger = logging.getLogger(__name__)
 
+import re
+
+def clean_text_for_tts(text: str) -> str:
+    # Remove markdown like *, #, _, `, [ ], ( ), >
+    clean = re.sub(r'[*#_`~>[\]()]', '', text)
+    # Remove excessive newlines
+    clean = re.sub(r'\n+', ' ', clean)
+    clean = clean.strip()
+    return clean[:500]  # Sarvam TTS limit is typically 500 chars per API call
+
 async def text_to_speech(text: str, language: str | None = None) -> str:
     """
     Converts text to speech using Sarvam AI.
@@ -19,14 +29,15 @@ async def text_to_speech(text: str, language: str | None = None) -> str:
     Returns file path to the generated WAV file.
     """
     lang = language if language else "en-IN"
-    # Sarvam typically returns WAV audio
     output_path = generate_tts_output_path(extension="wav")
 
     if not settings.SARWAM_API_KEY:
         logger.warning("SARWAM_API_KEY missing, skipping TTS.")
         return output_path
+        
+    cleaned_text = clean_text_for_tts(text)
 
-    logger.info(f"[TTS] Generating speech for '{text[:50]}...' in lang={lang} via Sarvam AI")
+    logger.info(f"[TTS] Generating speech for '{cleaned_text[:50]}...' in lang={lang} via Sarvam AI")
 
     url = "https://api.sarvam.ai/text-to-speech"
     headers = {
@@ -35,7 +46,7 @@ async def text_to_speech(text: str, language: str | None = None) -> str:
     }
 
     payload = {
-        "inputs": [text],
+        "inputs": [cleaned_text],
         "target_language_code": lang,
         "speaker": "ritu",
         "pace": 1.0,
