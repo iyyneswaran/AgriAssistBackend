@@ -502,30 +502,29 @@ class AdvancedAnalysisService:
     # ─────────────────────────────────────────────
     def _ph_nutrient_prediction(self, ph: float) -> Dict[str, Any]:
         if ph < 5.5:
-            severity = "high"
-            summary = f"Acidic soil (pH {ph:.1f}) — nutrient lockout risk"
-            recommendation = "Soil is too acidic. Phosphorus, calcium, and magnesium may be unavailable to plants. Consider liming to raise pH. Aluminum toxicity possible."
-            nutrients_status = "Deficient: P, Ca, Mg | Toxic: Al, Mn"
-        elif ph < 6.0:
+            severity = "critical"
+            summary = f"Strongly Acidic (pH {ph:.1f}) — High toxicity and deficiency risks"
+            recommendation = "Apply lime to raise pH. Soil may lack N, P, K, Ca, Mg, S. Possible deficiencies include stunted growth and leaf discoloration (e.g., Phosphorus deficiency). Toxic levels of Aluminum and Manganese likely. Limit acidifying fertilizers."
+            nutrients_status = "Available (Low): N, P, K, Ca, Mg, S | Toxic: Al, Mn"
+            score = 80
+        elif ph <= 6.5:
             severity = "medium"
-            summary = f"Slightly acidic soil (pH {ph:.1f})"
-            recommendation = "Most nutrients are available but phosphorus uptake may be slightly reduced. Monitor and consider minor lime amendment."
-            nutrients_status = "Slightly reduced: P | Available: N, K"
+            summary = f"Moderately Acidic (pH {ph:.1f}) — Excellent nutrient availability"
+            recommendation = "Maintain current practices. Monitor for slight Calcium or Magnesium needs for specific sensitive crops."
+            nutrients_status = "Available: N, P, K, Ca, Mg, S, Fe, Mn | Locked: None"
+            score = 30
         elif ph <= 7.5:
             severity = "low"
-            summary = f"Optimal soil pH ({ph:.1f}) — excellent nutrient availability"
-            recommendation = "Soil pH is in the ideal range for most crops. All major nutrients (N, P, K) and micronutrients are readily available."
-            nutrients_status = "Optimal: N, P, K, Ca, Mg, Fe, Zn"
-        elif ph <= 8.5:
-            severity = "medium"
-            summary = f"Alkaline soil (pH {ph:.1f}) — some nutrients restricted"
-            recommendation = "Iron, manganese, and zinc availability is reduced in alkaline conditions. Consider adding sulfur or organic matter to lower pH."
-            nutrients_status = "Deficient: Fe, Mn, Zn | Available: Ca, Mg"
+            summary = f"Neutral (pH {ph:.1f}) — Ideal for major nutrients"
+            recommendation = "Maintain balanced fertilization. No major amendments required; nutrient availability is stable."
+            nutrients_status = "Available: N, P, K, Ca, Mg, S | Locked: None"
+            score = 10
         else:
             severity = "high"
-            summary = f"Highly alkaline soil (pH {ph:.1f}) — severe nutrient issues"
-            recommendation = "Soil is too alkaline for most crops. Apply sulfur amendments and organic matter to reduce pH. Multiple micronutrient deficiencies likely."
-            nutrients_status = "Deficient: Fe, Mn, Zn, Cu, B | Excess: Ca"
+            summary = f"Alkaline (pH {ph:.1f}) — Risk of micronutrient lockout"
+            recommendation = "Apply elemental sulfur or acidifying fertilizers to lower pH. Foliar micronutrient sprays needed to prevent Fe, Mn, Zn, Cu, B deficiencies (e.g., interveinal chlorosis or stunted growth)."
+            nutrients_status = "Available (Lowered): N, P, K | Locked: Fe, Mn, Zn, Cu, B"
+            score = 65
 
         return {
             "id": "ph_nutrients",
@@ -535,7 +534,7 @@ class AdvancedAnalysisService:
             "icon": "⚗️",
             "summary": summary,
             "recommendation": recommendation,
-            "score": abs(ph - 6.75) * 20,  # Deviation from ideal 6.75
+            "score": score,
             "details": {"ph": ph, "nutrients_status": nutrients_status},
         }
 
