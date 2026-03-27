@@ -46,6 +46,8 @@ async def chat_socket(websocket: WebSocket):
                 if data.get("type") == "chat_message":
                     language = data.get("language", "en")
                     content = data.get("content", "")
+                    latitude = data.get("latitude")
+                    longitude = data.get("longitude")
 
                     if not content.strip():
                         await manager.send_personal_message(
@@ -75,6 +77,8 @@ async def chat_socket(websocket: WebSocket):
                             session_id=session_id,
                             language=language,
                             content=content,
+                            latitude=latitude,
+                            longitude=longitude,
                         )
                     except Exception as ai_err:
                         logger.error(f"[WS] AI generation error: {ai_err}")

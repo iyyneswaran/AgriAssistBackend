@@ -1,27 +1,27 @@
-from typing import Dict
-
+from typing import Dict, Optional
 
 async def build_context(
     crop: str,
-    temperature: float,
+    temperature: str,
+    humidity: str,
     moisture: str,
     weather: str,
     user_question: str,
 ) -> str:
     """
-    Builds structured prompt for Gemini reasoning.
+    Builds structured prompt for AI reasoning.
     """
 
     context_prompt = f"""
-Crop: {crop}
-Temperature: {temperature}°C
-Soil Moisture: {moisture}
-Weather Forecast: {weather}
+Current Farm Context:
+- Crop: {crop}
+- Sensor Temperature: {temperature}
+- Sensor Humidity: {humidity}
+- Soil Moisture: {moisture}
+- Local Weather: {weather}
 
 User Question:
 {user_question}
-
-Provide diagnosis and clear recommendation.
 """
 
     return context_prompt.strip()

@@ -12,6 +12,8 @@ class ChatRequest(BaseModel):
     message: str
     language: Optional[str] = "en"
     session_id: Optional[str] = "default"
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 @router.post("/generate")
 async def generate_chat_response(request: ChatRequest):
@@ -27,6 +29,8 @@ async def generate_chat_response(request: ChatRequest):
             session_id=request.session_id,
             language=request.language or "en",
             content=request.message,
+            latitude=request.latitude,
+            longitude=request.longitude,
         )
         
         return {"response": final_response}
