@@ -17,8 +17,8 @@ import logging
 router = APIRouter(prefix="/sensor-data", tags=["Sensor Data"])
 logger = logging.getLogger(__name__)
 
-SENSOR_API_KEY = os.getenv("SENSOR_API_KEY", "agriassist-sensor-default-key")
-SENSOR_HARDWARE_URL = os.getenv("SENSOR_HARDWARE_URL", "https://incised-scripturally-lois.ngrok-free.dev")
+SENSOR_API_KEY = os.getenv("SENSOR_API_KEY")
+SENSOR_HARDWARE_URL = os.getenv("SENSOR_HARDWARE_URL")
 
 analysis_service = AdvancedAnalysisService()
 
