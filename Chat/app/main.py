@@ -14,6 +14,7 @@ import logging
 from app.api.http.geo import router as geo_router
 from app.api.http.schemes import router as schemes_router
 from app.api.http.sensor import router as sensor_router
+from app.api.http.scan import router as scan_router
 
 
 logger = logging.getLogger(__name__)
@@ -57,12 +58,20 @@ app.include_router(admin_router, prefix="/api")
 app.include_router(geo_router)
 app.include_router(schemes_router, prefix="/api")
 app.include_router(sensor_router, prefix="/api")
+app.include_router(scan_router, prefix="/api")
 
 
 @app.on_event("startup")
 async def startup_event():
     await init_db()
     await init_redis()
+    # Load crop disease detection model at startup
+    try:
+        from app.services.scan.model_service import load_model
+        load_model()
+        print("[OK] Crop Disease Detection Model Loaded")
+    except Exception as e:
+        print(f"[WARN] Could not load disease detection model: {e}")
     print("[OK] Agri AI Backend Started")
 
 

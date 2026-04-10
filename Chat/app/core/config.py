@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     # Sarvam AI
     SARWAM_API_KEY: str | None = Field(None, env="SARWAM_API_KEY")
 
+    # Sensor Hardware
+    SENSOR_HARDWARE_URL: str | None = Field(None, env="SENSOR_HARDWARE_URL")
+
     # Allowed CORS Origins (comma separated)
     ALLOWED_ORIGINS: str = "*"
 
