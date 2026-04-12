@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional
 from app.services.chat.chat_service import generate_ai_response
+from app.middleware.rate_limiter import rate_limit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ class ChatRequest(BaseModel):
     longitude: Optional[float] = None
 
 @router.post("/generate")
-async def generate_chat_response(request: ChatRequest):
+async def generate_chat_response(req: Request, request: ChatRequest, _=Depends(rate_limit)):
     """
     Internal HTTP endpoint for AI chat generation via Sarvam AI.
     Called by the Express server (which already authenticates the user).

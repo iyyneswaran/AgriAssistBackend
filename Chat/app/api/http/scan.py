@@ -3,7 +3,7 @@ Scan Crop Router — Disease detection and remedy generation endpoints.
 Handles image upload, validation, ML inference, and AI remedy generation.
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Depends, Request
 from app.schemas.scan_schemas import (
     ScanPredictResponse,
     RemedyRequest,
@@ -13,6 +13,7 @@ from app.schemas.scan_schemas import (
 )
 from app.services.scan.model_service import predict
 from app.services.scan.remedy_service import generate_remedy
+from app.middleware.rate_limiter import rate_limit
 import json
 import logging
 
@@ -78,7 +79,7 @@ async def _read_and_validate_bytes(file: UploadFile) -> bytes:
 # POST /api/scan/predict — Image → Disease Prediction
 # ─────────────────────────────────────────────
 @router.post("/predict", response_model=ScanPredictResponse)
-async def predict_disease(file: UploadFile = File(...)):
+async def predict_disease(request: Request, file: UploadFile = File(...), _=Depends(rate_limit)):
     """
     Upload a crop leaf image (JPEG/PNG, ≤10MB) for disease detection.
     Returns: disease name, crop name, and confidence score.
@@ -101,7 +102,7 @@ async def predict_disease(file: UploadFile = File(...)):
 # POST /api/scan/remedy — Disease → AI Remedy
 # ─────────────────────────────────────────────
 @router.post("/remedy", response_model=RemedyResponse)
-async def get_remedy(request: RemedyRequest):
+async def get_remedy(req: Request, request: RemedyRequest, _=Depends(rate_limit)):
     """
     Generate an AI-powered remedy for a detected disease.
     Optionally includes IoT sensor data for personalized advice.
@@ -123,8 +124,10 @@ async def get_remedy(request: RemedyRequest):
 # ─────────────────────────────────────────────
 @router.post("/analyze", response_model=ScanAnalyzeResponse)
 async def analyze_crop(
+    request: Request,
     file: UploadFile = File(...),
     sensor_data: str = Form(default=""),
+    _=Depends(rate_limit)
 ):
     """
     Combined endpoint: uploads an image, runs disease detection,

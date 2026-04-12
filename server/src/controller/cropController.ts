@@ -2,15 +2,30 @@ import { Request, Response } from 'express';
 import { db } from '../db';
 import { Payload } from '../types/type';
 import { AuditLogger } from '../services/auditLogger';
+import { redis } from '../services/redis';
 
 /**
  * List all available reference crops
  */
 export const listCrops = async (req: Request, res: Response) => {
     try {
+        const cacheKey = "cache:system:crops";
+
+        if (redis.isReady) {
+            const cached = await redis.get(cacheKey);
+            if (cached) {
+                return res.status(200).json(JSON.parse(cached));
+            }
+        }
+
         const crops = await db.crop.findMany({
             orderBy: { name: 'asc' }
         });
+
+        if (redis.isReady) {
+            await redis.setEx(cacheKey, 86400, JSON.stringify(crops)); // 24 hours
+        }
+
         res.status(200).json(crops);
     } catch (err: any) {
         res.status(500).json({ message: `Failed to list crops: ${err.message}` });

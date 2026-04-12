@@ -5,11 +5,13 @@ Falls back to rule-based remedies when the API is unavailable.
 
 import httpx
 import re
+import json
 import logging
 from typing import Optional
 from app.core.config import settings
 from app.schemas.scan_schemas import SensorContext
 from app.services.scan.fallback_remedies import get_fallback_remedy
+from app.services.redis.session_store import redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -188,6 +190,27 @@ async def generate_remedy(
             fallback["sensor_advice"] = _build_sensor_summary(merged_sensor)
         return fallback
 
+    # Check Cache First
+    cache_key = None
+    if redis_client:
+        rounded_sensor = "no_sensor"
+        if merged_sensor:
+            t = round(merged_sensor.temperature) if merged_sensor.temperature is not None else "x"
+            h = round(merged_sensor.humidity) if merged_sensor.humidity is not None else "x"
+            s = round(merged_sensor.soil_moisture) if merged_sensor.soil_moisture is not None else "x"
+            p = round(merged_sensor.ph_value, 1) if merged_sensor.ph_value is not None else "x"
+            rounded_sensor = f"{t}_{h}_{s}_{p}"
+        
+        cache_key = f"remedy:{disease_label}_{crop_type}_{rounded_sensor}"
+        
+        try:
+            cached_data = await redis_client.get(cache_key)
+            if cached_data:
+                logger.info(f"[Remedy] Returning cached remedy for {cache_key}")
+                return json.loads(cached_data)
+        except Exception as e:
+            logger.warning(f"[Remedy] Cache read error: {e}")
+
     # Build prompt and call Sarvam AI
     prompt = _build_remedy_prompt(disease_label, crop_type, merged_sensor)
 
@@ -223,6 +246,15 @@ async def generate_remedy(
             content = content.replace("<think>\n", "").replace("<think>", "").strip()
 
             result = _parse_remedy_response(content)
+            
+            # Save to cache
+            if redis_client and cache_key:
+                try:
+                    # Cache for 24 hours
+                    await redis_client.setex(cache_key, 86400, json.dumps(result))
+                except Exception as e:
+                    logger.warning(f"[Remedy] Cache write error: {e}")
+            
             return result
 
     except httpx.TimeoutException:
