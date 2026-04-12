@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     # Pinecone
     PINECONE_API_KEY: str | None = Field(None, env="PINECONE_API_KEY")
     PINECONE_INDEX_NAME: str | None = Field("agriassist", env="PINECONE_INDEX_NAME")
+    PINECONE_NAMESPACE: str = Field("tn_agri_v2", env="PINECONE_NAMESPACE")
 
     # Supabase (Optional/Deprecated)
     SUPABASE_URL: str | None = None

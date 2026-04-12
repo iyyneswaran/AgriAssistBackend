@@ -11,6 +11,7 @@ class RagService:
     """
     Orchestrates RAG pipeline for scheme recommendation.
     Works with a farm_context dict instead of User ORM model.
+    Uses metadata-filtered retrieval and structured LLM output.
     """
 
     def __init__(self):
@@ -23,6 +24,7 @@ class RagService:
     def build_user_context(self, farm_context: Dict[str, Any]) -> str:
         """
         Build structured context string for embedding from farm context dict.
+        Includes season and weather details when available.
         """
         parts = []
         if farm_context.get("crop"):
@@ -35,6 +37,10 @@ class RagService:
             parts.append(f"State: {farm_context['state']}")
         if farm_context.get("district"):
             parts.append(f"District: {farm_context['district']}")
+        if farm_context.get("season"):
+            parts.append(f"Current season: {farm_context['season']}")
+        if farm_context.get("weather_details"):
+            parts.append(f"Weather: {farm_context['weather_details']}")
 
         return "\n".join(parts) if parts else "Indian farmer seeking agricultural schemes"
 
@@ -48,7 +54,7 @@ class RagService:
         Full RAG flow:
         1. Build user context from farm_context dict
         2. Embed query + context
-        3. Retrieve similar schemes
+        3. Retrieve similar schemes with metadata filters
         4. Apply ranking/filtering
         5. Generate final answer with LLM using retrieved context
         """
@@ -69,14 +75,18 @@ class RagService:
         # 2️⃣ Generate embedding
         embedding = await self.embedding_service.embed_text(enriched_query)
 
-        # 3️⃣ Retrieve from vector store
+        # 3️⃣ Retrieve from vector store with metadata filters
         results = await self.retriever.retrieve(
             embedding=embedding,
-            top_k=top_k,
+            top_k=top_k + 4,  # Retrieve extra for better re-ranking
+            farm_context=farm_context,
         )
 
         # 4️⃣ Post-filtering / ranking using farm context
         ranked_results = self.ranker.rank(results, farm_context)
+
+        # Trim to requested top_k after ranking
+        ranked_results = ranked_results[:top_k]
 
         # 5️⃣ Generate Final Answer using context
         context_text = self._build_retrieved_context(ranked_results)
@@ -84,7 +94,7 @@ class RagService:
 
         return {
             "answer": final_answer,
-            "source_documents": ranked_results
+            "source_documents": ranked_results,
         }
 
     def _build_retrieved_context(self, results: List[dict]) -> str:
@@ -93,49 +103,61 @@ class RagService:
         """
         if not results:
             return "No relevant documents found."
-            
+
         context_parts = []
         for i, item in enumerate(results):
             title = item.get("title", f"Document {i+1}")
             desc = item.get("description", "")
             eligibility = item.get("eligibility", "")
             benefit = item.get("benefit_amount", "")
+            region = item.get("region", "")
+            crop_type = item.get("crop_type", "")
             context_parts.append(
-                f"--- Scheme: {title} ---\n"
+                f"--- Scheme {i+1}: {title} ---\n"
                 f"Description: {desc}\n"
                 f"Eligibility: {eligibility}\n"
                 f"Benefit: {benefit}\n"
+                f"Region: {region}\n"
+                f"Applicable Crops: {crop_type}\n"
             )
-            
+
         return "\n".join(context_parts)
 
     async def _generate_answer(self, query: str, user_context: str, context_text: str) -> str:
         """
-        Calls Gemini LLM to generate the final response.
+        Calls LLM to generate the final grounded response.
+        Output is structured: scheme name, match reason, eligibility summary.
         """
-        prompt = f"""You are an agricultural assistant AI helping Indian farmers find relevant government schemes.
-Use the provided Context Information to answer the User Query.
-Ensure the answer is tailored to the Farmer Context if applicable.
-If the Context Information does not contain the answer, say "I don't have enough information on that specific topic based on available agricultural schemes." Do not hallucinate schemes.
+        prompt = f"""You are an expert agricultural assistant AI helping Indian farmers find relevant government schemes and subsidies.
+
+STRICT RULES:
+1. Use ONLY the Context Information below to answer. Do NOT invent or hallucinate any scheme.
+2. If the Context Information does not contain relevant schemes, say: "I don't have enough information on that specific topic based on available agricultural schemes."
+3. Tailor your response to the Farmer Context provided.
 
 Farmer Context:
 {user_context}
 
-Context Information:
+Context Information (Retrieved Schemes):
 {context_text}
 
 User Query:
 {query}
 
-Provide a concise summary of relevant schemes available for this farmer. Focus on:
-1. Which schemes match the farmer's crop, region, and farm size
-2. Key benefits and eligibility criteria
-3. Any specific steps the farmer should take to avail these schemes
+RESPONSE FORMAT:
+For each relevant scheme, provide:
+1. **Scheme Name**: The exact name
+2. **Why It Matches Your Profile**: Explain how this scheme is relevant to the farmer's crop, region, land size, or situation
+3. **Eligibility**: Key eligibility criteria
+4. **Benefit**: What the farmer gets (amount, subsidy %, etc.)
+5. **How to Apply**: Brief steps if available
+
+Prioritize schemes that are most relevant to the farmer's specific profile. Be concise and actionable.
 """
         try:
             response = await self.client.aio.models.generate_content(
                 model=self.model_name,
-                contents=prompt
+                contents=prompt,
             )
             return response.text
         except Exception as e:
