@@ -1,28 +1,28 @@
 """
-Notification API Routes
-========================
-Handles notification listing, read/unread tracking, count endpoints,
-pipeline triggering, and admin test endpoints.
+Notification API routes.
+
+Handles notification listing, read/unread tracking, click tracking, pipeline
+evaluation, and authenticated test delivery.
 """
 
 import logging
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Header, Depends, Query, BackgroundTasks
-from sqlalchemy import select, func, desc, update
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
+from sqlalchemy import desc, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.core.security import get_current_user
 from app.db.session import get_db
-from app.notifications.models.notification_log import NotificationLog
 from app.notifications.models.notification_history import NotificationHistory
+from app.notifications.models.notification_log import NotificationLog
 from app.notifications.schemas.notification_schemas import (
+    NotificationCountResponse,
+    NotificationInteractionRequest,
     NotificationItem,
     NotificationListResponse,
     NotificationMarkReadRequest,
-    NotificationCountResponse,
     TestNotificationRequest,
 )
 from app.notifications.services.orchestrator import NotificationOrchestrator
@@ -55,16 +55,12 @@ async def list_notifications(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """List notifications for the authenticated user with pagination and filters."""
+    """List notifications for the authenticated user with pagination."""
     user_id = _extract_user_id(authorization)
 
-    # Build query joining logs with history
     query = (
         select(NotificationLog, NotificationHistory)
-        .join(
-            NotificationHistory,
-            NotificationHistory.log_id == NotificationLog.id,
-        )
+        .join(NotificationHistory, NotificationHistory.log_id == NotificationLog.id)
         .where(NotificationLog.user_id == user_id)
     )
 
@@ -75,11 +71,9 @@ async def list_notifications(
     if unread_only:
         query = query.where(NotificationHistory.is_read == False)
 
-    # Count total
     count_query = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_query)).scalar() or 0
 
-    # Count unread
     unread_query = (
         select(func.count())
         .select_from(
@@ -94,28 +88,25 @@ async def list_notifications(
     )
     unread_count = (await db.execute(unread_query)).scalar() or 0
 
-    # Paginate
     offset = (page - 1) * page_size
     query = query.order_by(desc(NotificationLog.sent_at)).offset(offset).limit(page_size)
     result = await db.execute(query)
-    rows = result.all()
 
-    notifications = []
-    for log, history in rows:
-        notifications.append(
-            NotificationItem(
-                id=history.id,
-                title=log.title,
-                body=log.body,
-                severity=log.severity,
-                event_type=log.event_type,
-                is_read=history.is_read,
-                is_dismissed=history.is_dismissed,
-                sent_at=log.sent_at,
-                read_at=history.read_at,
-                payload=log.payload,
-            )
+    notifications = [
+        NotificationItem(
+            id=history.id,
+            title=log.title,
+            body=log.body,
+            severity=log.severity,
+            event_type=log.event_type,
+            is_read=history.is_read,
+            is_dismissed=history.is_dismissed,
+            sent_at=log.sent_at,
+            read_at=history.read_at,
+            payload=log.payload,
         )
+        for log, history in result.all()
+    ]
 
     return NotificationListResponse(
         notifications=notifications,
@@ -131,7 +122,7 @@ async def get_notification_count(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get notification counts (total and unread) for the authenticated user."""
+    """Get notification counts for the authenticated user."""
     user_id = _extract_user_id(authorization)
 
     total_q = select(func.count(NotificationHistory.id)).where(
@@ -154,20 +145,62 @@ async def mark_notifications_read(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Mark one or more notifications as read."""
+    """Mark notifications as read by history ID or notification log ID."""
     user_id = _extract_user_id(authorization)
 
-    await db.execute(
+    result = await db.execute(
         update(NotificationHistory)
         .where(
-            NotificationHistory.id.in_(payload.notification_ids),
             NotificationHistory.user_id == user_id,
+            or_(
+                NotificationHistory.id.in_(payload.notification_ids),
+                NotificationHistory.log_id.in_(payload.notification_ids),
+            ),
         )
         .values(is_read=True, read_at=datetime.utcnow())
     )
     await db.commit()
 
-    return {"status": "ok", "marked_read": len(payload.notification_ids)}
+    return {"status": "ok", "marked_read": result.rowcount}
+
+
+@router.post("/track-click")
+async def track_notification_click(
+    payload: NotificationInteractionRequest,
+    authorization: str = Header(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Track a notification click and mark it as read for the current user."""
+    user_id = _extract_user_id(authorization)
+
+    if not payload.notification_id and not payload.history_id:
+        raise HTTPException(
+            status_code=400,
+            detail="notification_id or history_id is required",
+        )
+
+    conditions = []
+    if payload.history_id:
+        conditions.append(NotificationHistory.id == payload.history_id)
+    if payload.notification_id:
+        conditions.append(NotificationHistory.log_id == payload.notification_id)
+
+    result = await db.execute(
+        update(NotificationHistory)
+        .where(NotificationHistory.user_id == user_id, or_(*conditions))
+        .values(
+            is_read=True,
+            read_at=datetime.utcnow(),
+            clicked_action=True,
+            action_taken_at=datetime.utcnow(),
+        )
+    )
+    await db.commit()
+
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    return {"status": "tracked", "updated": result.rowcount}
 
 
 @router.post("/mark-all-read")
@@ -197,14 +230,17 @@ async def dismiss_notification(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Dismiss a notification."""
+    """Dismiss a notification by history ID or notification log ID."""
     user_id = _extract_user_id(authorization)
 
     result = await db.execute(
         update(NotificationHistory)
         .where(
-            NotificationHistory.id == notification_id,
             NotificationHistory.user_id == user_id,
+            or_(
+                NotificationHistory.id == notification_id,
+                NotificationHistory.log_id == notification_id,
+            ),
         )
         .values(is_dismissed=True, dismissed_at=datetime.utcnow())
     )
@@ -223,10 +259,7 @@ async def trigger_evaluation(
     longitude: Optional[float] = Query(None),
     authorization: str = Header(None),
 ):
-    """
-    Trigger a notification pipeline evaluation for the authenticated user.
-    Runs in background to avoid blocking the request.
-    """
+    """Trigger the notification intelligence pipeline in the background."""
     user_id = _extract_user_id(authorization)
 
     background_tasks.add_task(
@@ -248,22 +281,20 @@ async def send_test_notification(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
-    """Send a test notification (for development/debugging)."""
+    """Send a test notification to the current user's subscribed devices."""
     user_id = _extract_user_id(authorization)
 
     from app.notifications.services.push_service import PushService
+
     push_svc = PushService()
-
-    title = "🧪 Test Notification"
-    body = payload.message or "This is a test notification from AgriAssist."
-
     log_id = await push_svc.send_notification(
         session=db,
         user_id=user_id,
-        title=title,
-        body=body,
+        title="AgriAssist Test Alert",
+        body=payload.message or "This is a test notification from AgriAssist.",
         severity=payload.severity,
         event_type=payload.event_type,
+        extra_data={"url": payload.url} if payload.url else None,
     )
 
     return {"status": "sent", "notification_id": log_id}

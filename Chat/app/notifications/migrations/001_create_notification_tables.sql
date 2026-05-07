@@ -1,28 +1,47 @@
--- ══════════════════════════════════════════════════════════════
--- AgriAssist Notification System — Database Migration
--- ══════════════════════════════════════════════════════════════
--- Run this ONLY if you need to manually create tables.
--- The FastAPI startup (Base.metadata.create_all) handles this automatically.
--- This file exists as documentation and for manual deployment scenarios.
--- ══════════════════════════════════════════════════════════════
+-- AgriAssist Notification System - database migration
+-- Run this in production when automatic SQLAlchemy create_all is not enough.
+-- The ALTER statements make this safe for existing installs of the first
+-- notification schema.
 
--- 1. Push Subscriptions (Web Push endpoints per user/device)
 CREATE TABLE IF NOT EXISTS push_subscriptions (
     id VARCHAR PRIMARY KEY,
     user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     endpoint TEXT NOT NULL UNIQUE,
+    endpoint_hash VARCHAR(64),
     p256dh_key TEXT NOT NULL,
     auth_key TEXT NOT NULL,
+    content_encoding VARCHAR(30) NOT NULL DEFAULT 'aes128gcm',
+    vapid_public_key_hash VARCHAR(64),
     user_agent TEXT,
     device_name VARCHAR(100),
+    browser VARCHAR(80),
+    platform VARCHAR(80),
     is_active BOOLEAN DEFAULT TRUE,
+    failure_count INTEGER DEFAULT 0,
+    last_error TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
     last_used_at TIMESTAMP,
+    last_success_at TIMESTAMP,
     expires_at TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
 
--- 2. Notification Events (structured events from the pipeline)
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS endpoint_hash VARCHAR(64);
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS content_encoding VARCHAR(30) NOT NULL DEFAULT 'aes128gcm';
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS vapid_public_key_hash VARCHAR(64);
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS browser VARCHAR(80);
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS platform VARCHAR(80);
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS failure_count INTEGER DEFAULT 0;
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS last_error TEXT;
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS last_success_at TIMESTAMP;
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_active_user
+    ON push_subscriptions(user_id, is_active);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint_hash
+    ON push_subscriptions(endpoint_hash);
+
 CREATE TABLE IF NOT EXISTS notification_events (
     id VARCHAR PRIMARY KEY,
     user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -39,12 +58,12 @@ CREATE TABLE IF NOT EXISTS notification_events (
     dedup_hash VARCHAR(64),
     created_at TIMESTAMP DEFAULT NOW()
 );
+
 CREATE INDEX IF NOT EXISTS idx_notification_events_user ON notification_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_notification_events_type ON notification_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_notification_events_severity ON notification_events(severity);
 CREATE INDEX IF NOT EXISTS idx_notification_events_dedup ON notification_events(dedup_hash);
 
--- 3. Notification Logs (sent notifications with content)
 CREATE TABLE IF NOT EXISTS notification_logs (
     id VARCHAR PRIMARY KEY,
     event_id VARCHAR REFERENCES notification_events(id),
@@ -57,9 +76,11 @@ CREATE TABLE IF NOT EXISTS notification_logs (
     payload JSONB DEFAULT '{}',
     sent_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_notification_logs_user ON notification_logs(user_id);
 
--- 4. Notification Preferences (per-user settings)
+CREATE INDEX IF NOT EXISTS idx_notification_logs_user ON notification_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_notification_logs_user_sent
+    ON notification_logs(user_id, sent_at DESC);
+
 CREATE TABLE IF NOT EXISTS notification_preferences (
     id VARCHAR PRIMARY KEY,
     user_id VARCHAR NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
@@ -76,22 +97,30 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
     language VARCHAR(10) DEFAULT 'en',
     updated_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_notification_preferences_user ON notification_preferences(user_id);
 
--- 5. Delivery Status (per-subscription delivery tracking)
+CREATE INDEX IF NOT EXISTS idx_notification_preferences_user
+    ON notification_preferences(user_id);
+
 CREATE TABLE IF NOT EXISTS delivery_status (
     id VARCHAR PRIMARY KEY,
     log_id VARCHAR NOT NULL REFERENCES notification_logs(id),
     subscription_id VARCHAR NOT NULL REFERENCES push_subscriptions(id),
     status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    attempt_count INTEGER NOT NULL DEFAULT 0,
     status_code INTEGER,
     error_message TEXT,
     delivered_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_delivery_status_log ON delivery_status(log_id);
 
--- 6. Alert Rules (configurable thresholds per user)
+ALTER TABLE delivery_status ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_delivery_status_log ON delivery_status(log_id);
+CREATE INDEX IF NOT EXISTS idx_delivery_status_subscription
+    ON delivery_status(subscription_id);
+CREATE INDEX IF NOT EXISTS idx_delivery_status_created
+    ON delivery_status(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS alert_rules (
     id VARCHAR PRIMARY KEY,
     user_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -102,9 +131,9 @@ CREATE TABLE IF NOT EXISTS alert_rules (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
 CREATE INDEX IF NOT EXISTS idx_alert_rules_user ON alert_rules(user_id);
 
--- 7. Notification History (user interaction tracking)
 CREATE TABLE IF NOT EXISTS notification_history (
     id VARCHAR PRIMARY KEY,
     log_id VARCHAR NOT NULL REFERENCES notification_logs(id),
@@ -116,5 +145,8 @@ CREATE TABLE IF NOT EXISTS notification_history (
     clicked_action BOOLEAN DEFAULT FALSE,
     action_taken_at TIMESTAMP
 );
+
 CREATE INDEX IF NOT EXISTS idx_notification_history_log ON notification_history(log_id);
 CREATE INDEX IF NOT EXISTS idx_notification_history_user ON notification_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_notification_history_user_read
+    ON notification_history(user_id, is_read);

@@ -33,6 +33,13 @@ class NotificationMarkReadRequest(BaseModel):
     notification_ids: list[str]
 
 
+class NotificationInteractionRequest(BaseModel):
+    """Request to track notification click/open interactions."""
+    notification_id: Optional[str] = None
+    history_id: Optional[str] = None
+    action: Optional[str] = None
+
+
 class NotificationCountResponse(BaseModel):
     """Unread notification count."""
     unread_count: int
@@ -44,3 +51,4 @@ class TestNotificationRequest(BaseModel):
     event_type: str = "smart_irrigation"
     severity: str = "medium"
     message: Optional[str] = None
+    url: Optional[str] = None

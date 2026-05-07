@@ -24,6 +24,7 @@ class DeliveryStatus(Base):
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="pending"
     )  # pending, delivered, failed, expired
+    attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     status_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
