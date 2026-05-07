@@ -52,6 +52,15 @@ from app.db.models.message import Message  # noqa: E402, F401
 from app.db.models.sensor_data import SensorData  # noqa: E402, F401
 from app.db.models.voice_log import VoiceLog  # noqa: E402, F401
 
+# Notification system models
+from app.notifications.models.push_subscription import PushSubscription  # noqa: E402, F401
+from app.notifications.models.notification_event import NotificationEvent  # noqa: E402, F401
+from app.notifications.models.notification_log import NotificationLog  # noqa: E402, F401
+from app.notifications.models.notification_preference import NotificationPreference  # noqa: E402, F401
+from app.notifications.models.delivery_status import DeliveryStatus  # noqa: E402, F401
+from app.notifications.models.alert_rule import AlertRule  # noqa: E402, F401
+from app.notifications.models.notification_history import NotificationHistory  # noqa: E402, F401
+
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

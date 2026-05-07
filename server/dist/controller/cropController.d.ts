@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 /**
  * List all available reference crops
  */
-export declare const listCrops: (req: Request, res: Response) => Promise<void>;
+export declare const listCrops: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 /**
  * Assign a crop to a field (Start a cultivation cycle)
  */

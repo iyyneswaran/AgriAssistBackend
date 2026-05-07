@@ -3,7 +3,7 @@ Sensor Data API — Handles IoT sensor data ingestion from ESP32,
 retrieval of latest readings, and advanced analysis computation.
 """
 
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, HTTPException, Header, Query, BackgroundTasks
 from app.schemas.sensor_schemas import SensorDataSubmit, SensorDataResponse, AnalysisItem, AnalysisResponse
 from app.services.analysis.analysis_service import AdvancedAnalysisService
 from app.db.session import AsyncSessionLocal
@@ -29,12 +29,23 @@ def _verify_sensor_key(x_sensor_key: str = Header(None)):
         raise HTTPException(status_code=401, detail="Invalid or missing sensor API key")
 
 
+async def _trigger_notification_pipeline(user_id: str):
+    """Trigger the notification pipeline in background after sensor data ingestion."""
+    try:
+        from app.notifications.services.orchestrator import NotificationOrchestrator
+        orchestrator = NotificationOrchestrator()
+        await orchestrator.run_pipeline(user_id=user_id)
+    except Exception as e:
+        logger.error(f"Notification pipeline error for user {user_id}: {e}")
+
+
 # ─────────────────────────────────────────────
 # POST /api/sensor-data — ESP32 submits readings
 # ─────────────────────────────────────────────
 @router.post("")
 async def submit_sensor_data(
     payload: SensorDataSubmit,
+    background_tasks: BackgroundTasks,
     x_sensor_key: str = Header(None),
 ):
     """Receive sensor data from ESP32 device."""
@@ -53,6 +64,9 @@ async def submit_sensor_data(
             )
             session.add(sensor_record)
             await session.commit()
+
+        # Trigger notification pipeline in background
+        background_tasks.add_task(_trigger_notification_pipeline, payload.user_id)
 
         return {
             "status": "success",

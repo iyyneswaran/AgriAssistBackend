@@ -3,14 +3,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMyActiveAssignments = exports.updateAssignmentStatus = exports.assignCrop = exports.listCrops = void 0;
 const db_1 = require("../db");
 const auditLogger_1 = require("../services/auditLogger");
+const redis_1 = require("../services/redis");
 /**
  * List all available reference crops
  */
 const listCrops = async (req, res) => {
     try {
+        const cacheKey = "cache:system:crops";
+        if (redis_1.redis.isReady) {
+            const cached = await redis_1.redis.get(cacheKey);
+            if (cached) {
+                return res.status(200).json(JSON.parse(cached));
+            }
+        }
         const crops = await db_1.db.crop.findMany({
             orderBy: { name: 'asc' }
         });
+        if (redis_1.redis.isReady) {
+            await redis_1.redis.setEx(cacheKey, 86400, JSON.stringify(crops)); // 24 hours
+        }
         res.status(200).json(crops);
     }
     catch (err) {

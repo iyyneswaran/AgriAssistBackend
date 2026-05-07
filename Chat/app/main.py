@@ -15,6 +15,9 @@ from app.api.http.geo import router as geo_router
 from app.api.http.schemes import router as schemes_router
 from app.api.http.sensor import router as sensor_router
 from app.api.http.scan import router as scan_router
+from app.notifications.routes.push_routes import router as push_router
+from app.notifications.routes.notification_routes import router as notification_router
+from app.notifications.routes.preference_routes import router as preference_router
 
 
 logger = logging.getLogger(__name__)
@@ -60,6 +63,11 @@ app.include_router(schemes_router, prefix="/api")
 app.include_router(sensor_router, prefix="/api")
 app.include_router(scan_router, prefix="/api")
 
+# Notification system routes
+app.include_router(push_router, prefix="/api")
+app.include_router(notification_router, prefix="/api")
+app.include_router(preference_router, prefix="/api")
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -72,6 +80,11 @@ async def startup_event():
         print("[OK] Crop Disease Detection Model Loaded")
     except Exception as e:
         print(f"[WARN] Could not load disease detection model: {e}")
+    # Notification system
+    if settings.VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY:
+        print("[OK] Push Notification System Ready (VAPID configured)")
+    else:
+        print("[WARN] Push Notifications: VAPID keys not configured")
     print("[OK] Agri AI Backend Started")
 
 

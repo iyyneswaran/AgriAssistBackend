@@ -1,0 +1,119 @@
+A. Folder Scan Summary
+-----------------------
+- Backend/Chat: A Python (FastAPI) application providing AI, voice, image scanning (ML), offline sync, sensor data analysis, and geographic processing. Connected to PostgreSQL, Redis, Pinecone, and Google Earth Engine.
+- Backend/server: A Node.js (Express & TypeScript) application providing authentication (OTP), governance endpoints (land, fields, crops), chat history management, and Twilio/ElevenLabs voice agent integration (via WebSockets). Uses Prisma ORM and PostgreSQL.
+
+B. Endpoint Inventory
+-----------------------
+
+1. Backend/Chat (Prefixes as declared in main.py)
+| Method | Route                       | Purpose                            | Auth Requirement | File Location             |
+|--------|-----------------------------|------------------------------------|------------------|---------------------------|
+| WS     | /ws/chat                    | Real-time AI chat stream           | Unclear          | app/api/websocket/chat_ws.py |
+| WS     | /ws/presence                | WebSocket presence indicator       | Unclear          | app/api/websocket/presence_ws.py |
+| POST   | /api/generate               | Generate AI chat response          | Unclear          | app/api/http/chat.py      |
+| POST   | /api/upload                 | Upload offline records             | Rate limited     | app/api/http/voice.py     |
+| POST   | /api/transcribe             | Speech-to-Text                     | Rate limited     | app/api/http/voice.py     |
+| POST   | /api/synthesize             | Text-to-Speech                     | Rate limited     | app/api/http/voice.py     |
+| POST   | /api/sync                   | Offline data sync                  | Rate limited     | app/api/http/offline.py   |
+| POST   | /api/initiate-call          | Admin outbound call                | Rate limited     | app/api/http/admin.py     |
+| POST   | /api/ingest-schemes         | Ingest government schemes          | Unclear          | app/api/http/admin.py     |
+| POST   | /analyze                    | Geo analysis                       | Unclear          | app/api/http/geo.py       |
+| GET    | /api/recommend              | Recommend schemes based on RAG     | Unclear          | app/api/http/schemes.py   |
+| POST   | /api                        | Ingest sensor data                 | Unclear          | app/api/http/sensor.py    |
+| GET    | /api/latest/{user_id}       | Get latest sensor data             | Unclear          | app/api/http/sensor.py    |
+| GET    | /api/live                   | Live sensor dashboard feed         | Unclear          | app/api/http/sensor.py    |
+| GET    | /api/analysis/{user_id}     | Sensor-based AI analysis           | Unclear          | app/api/http/sensor.py    |
+| POST   | /api/predict                | Scan crop disease detection        | Unclear          | app/api/http/scan.py      |
+| POST   | /api/remedy                 | Get remedy for scanned disease     | Unclear          | app/api/http/scan.py      |
+| POST   | /api/analyze                | Scan analysis                      | Unclear          | app/api/http/scan.py      |
+
+2. Backend/server (Prefixes as declared in index.ts and routers)
+| Method | Route                                         | Purpose                            | Auth Requirement     | File Location                      |
+|--------|-----------------------------------------------|------------------------------------|----------------------|------------------------------------|
+| POST   | /api/request-otp                              | Auth OTP Request                   | Rate limited         | src/routes/routes.ts               |
+| POST   | /api/verify-otp                               | Auth OTP Verification              | Rate limited         | src/routes/routes.ts               |
+| POST   | /api/refresh                                  | Refresh Access Token               | verifyRefreshToken   | src/routes/routes.ts               |
+| GET    | /api/user/profile                             | Get user profile                   | verifyAccessToken    | src/routes/routes.ts               |
+| PATCH  | /api/user/profile                             | Update user profile                | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/user/request-mobile-update               | Request mobile update              | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/user/verify-mobile-update                | Verify mobile update               | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/governance/land                          | Register Land                      | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/governance/land                          | Get Lands                          | verifyAccessToken    | src/routes/routes.ts               |
+| PATCH  | /api/governance/land                          | Update Land                        | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/governance/field                         | Add Field                          | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/governance/field                         | Get Fields                         | verifyAccessToken    | src/routes/routes.ts               |
+| DELETE | /api/governance/field/:id                     | Delete Field                       | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/governance/crops                         | List Crops                         | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/governance/assignment                    | Assign Crop                        | verifyAccessToken    | src/routes/routes.ts               |
+| PATCH  | /api/governance/assignment/:id                | Update Crop Assignment             | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/governance/active-assignments            | Get active crops                   | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/chat/conversations                       | Get chat history                   | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/chat/conversations                       | Start conversation                 | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/chat/messages/:conversationId            | Get conversation messages          | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/chat/conversations/:conversationId/messages | Add chat message                   | verifyAccessToken    | src/routes/routes.ts               |
+| DELETE | /api/chat/conversations/:conversationId       | Delete conversation                | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/test/protected                           | Test endpoint                      | verifyAccessToken    | src/routes/routes.ts               |
+| GET    | /api/test/admin                               | Test admin endpoint                | verifyAccessToken    | src/routes/routes.ts               |
+| POST   | /api/voice-agent/sms-inbound                  | Twilio SMS Webhook                 | None                 | src/voice-agent/sms.ts             |
+| GET    | /api/voice-agent/sms-outbound                 | Trigger outbound SMS               | None                 | src/voice-agent/sms.ts             |
+| GET    | /api/voice-agent/request-address              | Request address via SMS            | None                 | src/voice-agent/addressSms.ts      |
+| GET    | /api/voice-agent/stored-address               | Get stored address                 | None                 | src/voice-agent/addressSms.ts      |
+| POST   | /api/voice-agent/network-fallback             | Provide degraded network fallback  | None                 | src/voice-agent/networkFallback.ts |
+| POST   | /api/voice-agent/fallback-voice-twiml         | TwiML fallback voice hook          | None                 | src/voice-agent/networkFallback.ts |
+| GET    | /api/voice-agent/health                       | Voice Agent Healthcheck            | None                 | src/voice-agent/voiceAgentRoutes.ts|
+| POST   | /api/voice-agent/voice                        | Twilio Voice Webhook               | None                 | src/voice-agent/voiceAgentRoutes.ts|
+| POST   | /api/voice-agent/incoming-call                | Twilio incoming call               | None                 | src/voice-agent/voiceAgentRoutes.ts|
+| POST   | /api/voice-agent/make-call                    | Trigger outbound call              | None                 | src/voice-agent/voiceAgentRoutes.ts|
+| WS     | /media-stream                                 | Stream audio via WebSocket         | None                 | src/voice-agent/voiceAgentRoutes.ts|
+
+C. Startup & Execution Flow
+-----------------------
+- Backend/Chat:
+  1. Entry point: `app/main.py`
+  2. `startup_event` triggers async connections (`init_db` for Postgres, `init_redis` for Redis) and loads ML models (crop disease detection).
+  3. Registers middleware (`CORSMiddleware`).
+  4. Includes endpoint routers with prefixes.
+  5. Listens and processes REST & WS events.
+- Backend/server:
+  1. Entry point: `src/index.ts` -> `app.ts`
+  2. Configures `express`, `cors`, `cookieParser`, `express-rate-limit`.
+  3. Registers `routes` under `/api` and `voiceAgentRoutes` under `/api/voice-agent`.
+  4. Wraps express app in standard HTTP `createServer(app)`.
+  5. Sets up WebSocket Server on the HTTP Server path `/media-stream` for Twilio Voice stream.
+  6. Listen on port 5000.
+
+D. Runtime & Config Checklist
+-----------------------
+- Backend/Chat:
+  - Runtime: Python 3.11. Packages: FastAPI, Uvicorn, SQLAlchemy, asyncpg, google-genai, pinecone, huggingface-hub, torch, torchvision, Pillow, redis.
+  - DB/Cache: PostgreSQL (Neon), Redis.
+  - Environment variables: `DATABASE_URL`, `JWT_SECRET`, `REDIS_URL`, `GEMINI_API_KEY`, `POLLINATION_API_KEY`, `SARWAM_API_KEY`, `HUGGINGFACE_API_KEY`, `PINECONE_API_KEY`.
+  - Ports: 8001 (default).
+- Backend/server:
+  - Runtime: Node.js 20. Packages: Express, Prisma, Twilio, ws, cookie-parser.
+  - Environment variables: `PORT`, `DATABASE_URL`, `JWT_SECRET`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID`, `VOICE_AGENT_TWILIO_ACCOUNT_SID`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_API_KEY`, `OLLAMA_URL`, `VOICE_AGENT_PUBLIC_URL`.
+  - Ports: 5000 (default).
+
+E. CI/CD Checklist
+-----------------------
+- Backend/Chat:
+  - Start commands: `uvicorn app.main:app --host 0.0.0.0 --port 8001`
+  - Build commands: Containerized via Dockerfile (`FROM python:3.11-slim`).
+  - System Dependencies: Requires `build-essential`, `libpq-dev`, `libsndfile1`.
+- Backend/server:
+  - Dev command: `npm run dev` (`ts-node-dev --respawn --transpile-only src/index.ts`)
+  - Build command: `npm run build` (`npx prisma generate && tsc`)
+  - Start command: `npm run start` (`node dist/index.js`)
+  - DB command: `npm run reset-db` (`npx prisma migrate reset --force && rm -rf prisma/migrations && npx prisma migrate dev --name init`)
+  - Containerized via Dockerfile (`FROM node:20-alpine`, exposes 5000).
+
+F. Risks & Missing Pieces
+-----------------------
+- Storage/State issues: In `Backend/server` (e.g. `sms.ts`, `addressSms.ts`, `networkFallback.ts`), the chat memory/fallback queues are stored in in-memory Maps (`sessions`, `pendingAddressRequests`, `pendingFallbackCalls`). This breaks completely in multi-instance (load balanced) environments.
+- Hardcoded URLs: Some `allowed_origins` config in `.env` includes local addresses. Hardcoded `OLLAMA_URL` defaults.
+- Testing Endpoints Exposed: `/api/test/protected` and `/api/test/admin` are included in production routes.
+- Fragility in WebSocket stream: Unhandled rejections are ignored in `Backend/server` index.ts which might lead to zombies.
+- CORS Issues: The Python backend has broad CORS access `allow_origins=[*]`, and Node.js has `origin: true` (reflecting origin).
+- Tight coupling to specific hardcoded ML models (e.g., ai4bharat models, Gemini-2.5) that may need adjustments or might fail if weights are large/unavailable.
+- High memory usage on startup in Python side as ML model weights load. Server boot might exceed standard timeouts in environments like Railway.

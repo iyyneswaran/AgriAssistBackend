@@ -161,7 +161,9 @@ const addMessage = async (req, res) => {
             const aiResponse = await axios_1.default.post(`${pythonUrl}/api/chat/generate`, {
                 message: messageData.textContent,
                 language: language,
-                session_id: conversationId
+                session_id: conversationId,
+                latitude: messageData.latitude,
+                longitude: messageData.longitude
             }, {
                 headers: {
                     'Authorization': req.headers.authorization || '' // pass-through JWT
