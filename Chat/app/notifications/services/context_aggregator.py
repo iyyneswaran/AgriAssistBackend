@@ -82,27 +82,46 @@ class ContextAggregator:
         return context
 
     async def _fetch_sensor_data(self, context: FarmContext) -> None:
-        """Fetch live sensor readings from ESP32 hardware."""
-        if not SENSOR_HARDWARE_URL:
-            logger.debug("No SENSOR_HARDWARE_URL configured, skipping live sensor fetch")
-            return
+        """Fetch live sensor readings from ESP32 hardware or database."""
+        success = False
+        if SENSOR_HARDWARE_URL:
+            try:
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get(
+                        f"{SENSOR_HARDWARE_URL}/api/sensors",
+                        headers={"ngrok-skip-browser-warning": "true"},
+                        timeout=8,
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        context.sensor_temperature = data.get("temperature")
+                        context.sensor_humidity = data.get("humidity")
+                        context.sensor_moisture = data.get("soil_moisture")
+                        context.sensor_last_seen = datetime.utcnow()
+                        success = True
+                        logger.debug(f"Live sensor data fetched: T={context.sensor_temperature}, H={context.sensor_humidity}, M={context.sensor_moisture}")
+            except Exception as e:
+                logger.warning(f"Failed to fetch live sensor data: {e}")
 
-        try:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    f"{SENSOR_HARDWARE_URL}/api/sensors",
-                    headers={"ngrok-skip-browser-warning": "true"},
-                    timeout=8,
-                )
-                if resp.status_code == 200:
-                    data = resp.json()
-                    context.sensor_temperature = data.get("temperature")
-                    context.sensor_humidity = data.get("humidity")
-                    context.sensor_moisture = data.get("soil_moisture")
-                    context.sensor_last_seen = datetime.utcnow()
-                    logger.debug(f"Live sensor data fetched: T={context.sensor_temperature}, H={context.sensor_humidity}, M={context.sensor_moisture}")
-        except Exception as e:
-            logger.warning(f"Failed to fetch live sensor data: {e}")
+        if not success:
+            logger.debug("Falling back to latest sensor data from database")
+            try:
+                async with AsyncSessionLocal() as session:
+                    result = await session.execute(
+                        select(SensorData)
+                        .where(SensorData.user_id == context.user_id)
+                        .order_by(desc(SensorData.recorded_at))
+                        .limit(1)
+                    )
+                    record = result.scalar_one_or_none()
+                    if record:
+                        context.sensor_temperature = record.temperature
+                        context.sensor_humidity = record.humidity
+                        context.sensor_moisture = record.soil_moisture
+                        context.sensor_last_seen = record.recorded_at
+                        logger.debug(f"DB sensor data fetched: T={context.sensor_temperature}, H={context.sensor_humidity}, M={context.sensor_moisture}")
+            except Exception as e:
+                logger.warning(f"Failed to fetch sensor data from DB: {e}")
 
     async def _fetch_gee_data(
         self, context: FarmContext, lat: float, lng: float
