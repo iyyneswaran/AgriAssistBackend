@@ -7,7 +7,7 @@ from typing import List, Dict
 from google import genai
 from app.core.config import settings
 from app.services.rag.embedding_service import EmbeddingService
-from app.integrations.pinecone.pinecone_store import PineconeStore
+from app.integrations.supabase.supabase_store import SupabaseStore
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ SEASON_KEYWORDS = {
 
 class IngestionService:
     """
-    Handles scheme document ingestion into vector DB (Pinecone).
+    Handles scheme document ingestion into vector DB (Supabase pgvector).
     Supports structured JSON scheme files with enriched metadata extraction.
     Uses namespace-based versioning for safe rollback.
     """
@@ -52,7 +52,7 @@ class IngestionService:
     def __init__(self, namespace: str = None):
         self.embedding_service = EmbeddingService()
         self.namespace = namespace or settings.PINECONE_NAMESPACE
-        self.vector_store = PineconeStore(namespace=self.namespace)
+        self.vector_store = SupabaseStore()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.model_name = settings.GEMINI_MODEL
 
@@ -245,15 +245,9 @@ class IngestionService:
             # Extract enriched metadata
             enriched = self._extract_enriched_metadata(scheme)
 
-            # Build rich embedding text for semantic search
-            embedding_text = f"""
-Scheme: {scheme_name}
-Description: {description}
-Eligible: {eligibility}
-Crops: {applicable_crops}
-Region: {region}
-Benefit: {benefit_amount}
-""".strip()
+            # Build rich embedding text following official EmbeddingGemma convention
+            scheme_content = f"Description: {description} | Eligible: {eligibility} | Crops: {applicable_crops} | Region: {region} | Benefit: {benefit_amount}"
+            embedding_text = f"title: {scheme_name} | text: {scheme_content}".strip()
 
             try:
                 embedding = await self.embedding_service.embed_text(embedding_text)

@@ -43,7 +43,7 @@ load_dotenv()
 from app.core.config import settings
 from app.services.rag.ingestion_service import IngestionService
 from app.services.rag.embedding_service import EmbeddingService
-from app.integrations.pinecone.pinecone_store import PineconeStore
+from app.integrations.supabase.supabase_store import SupabaseStore
 
 # -- Logging Setup --
 logging.basicConfig(
@@ -170,7 +170,7 @@ async def run_migration():
     print(f"  Namespace: {NAMESPACE}")
     print(f"  Data folder: {DATA_FOLDER}")
     print(f"  Pinecone index: {settings.PINECONE_INDEX_NAME}")
-    print(f"  Embedding model: {settings.GEMINI_EMBEDDING_MODEL}")
+    print(f"  Embedding model: {settings.EMBEDDING_MODEL}")
     print(f"  LLM model: {settings.GEMINI_MODEL}")
     print("=" * 60)
 
@@ -218,7 +218,7 @@ async def run_migration():
     print("\n[Step 3] Validating namespace...")
     await asyncio.sleep(5)
 
-    store = PineconeStore(namespace=NAMESPACE)
+    store = SupabaseStore()
     try:
         stats = await store.get_namespace_stats()
         print(f"  Index stats: {stats}")
@@ -234,7 +234,7 @@ async def run_migration():
     try:
         embedding_service = EmbeddingService()
         test_query = "agriculture subsidies and crop insurance for small farmers growing paddy in Tamil Nadu"
-        test_embedding = await embedding_service.embed_text(test_query)
+        test_embedding = await embedding_service.embed_text(test_query, is_query=True)
 
         results = await store.query_schemes(
             embedding=test_embedding,

@@ -261,3 +261,90 @@ export const deleteConversation = async (req: Request, res: Response) => {
         res.status(500).json({ message: `Failed to delete conversation: ${err.message}` });
     }
 };
+
+/**
+ * Add a message to a conversation using the Seva AI Agent
+ */
+export const addAgentMessage = async (req: Request, res: Response) => {
+    try {
+        const user = req.user as Payload;
+        const conversationId = req.params.conversationId as string;
+        const messageData = req.body;
+        const language = messageData.language || 'en';
+
+        // 1. Verify ownership
+        const conversation = await db.aIConversation.findFirst({
+            where: { id: conversationId, userId: user.id }
+        });
+
+        if (!conversation) {
+            return res.status(404).json({ message: "Conversation not found or access denied" });
+        }
+
+        // 2. Create USER message
+        const userMessage = await db.aIChatMessage.create({
+            data: {
+                conversationId,
+                sender: 'USER',
+                messageType: messageData.messageType || 'TEXT',
+                textContent: messageData.textContent,
+                filePath: messageData.filePath || null
+            }
+        });
+
+        // 3. Fetch past messages for context
+        const pastMessages = await db.aIChatMessage.findMany({
+            where: { conversationId },
+            orderBy: { createdAt: 'asc' },
+            take: 20 // Send last 20 messages for context
+        });
+
+        const messages = pastMessages.map(m => ({
+            role: m.sender === 'USER' ? 'user' : 'assistant',
+            content: m.textContent
+        }));
+
+        // 4. Call Python Agent endpoint
+        try {
+            const pythonUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8001';
+            const aiResponse = await axios.post(`${pythonUrl}/api/chat/agent`, {
+                messages: messages,
+                language: language
+            }, {
+                headers: { 'Authorization': req.headers.authorization || '' }
+            });
+
+            // aiResponse.data is the final message dictionary from Sarvam: { role: 'assistant', content: '...' }
+            const aiResponseText = aiResponse.data.content || "No response";
+
+            // 5. Create AI message
+            const aiMessage = await db.aIChatMessage.create({
+                data: {
+                    conversationId,
+                    sender: 'AI',
+                    messageType: 'TEXT',
+                    textContent: aiResponseText,
+                }
+            });
+
+            res.status(201).json({ userMessage, aiMessage });
+            return;
+        } catch (pythonErr: any) {
+            console.error("Failed to generate Agent response:", pythonErr.message);
+            const errorAiMessage = await db.aIChatMessage.create({
+                data: {
+                    conversationId,
+                    sender: 'AI',
+                    messageType: 'TEXT',
+                    textContent: "Sorry, the Seva Agent encountered an error. Please try again.",
+                }
+            });
+
+            res.status(201).json({ userMessage, aiMessage: errorAiMessage });
+            return;
+        }
+
+    } catch (err: any) {
+        res.status(500).json({ message: `Failed to add agent message: ${err.message}` });
+    }
+};

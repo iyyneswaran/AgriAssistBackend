@@ -1,4 +1,4 @@
-from app.integrations.pinecone.pinecone_store import PineconeStore
+from app.integrations.supabase.supabase_store import SupabaseStore
 from typing import Dict, Any, Optional
 import logging
 
@@ -7,12 +7,12 @@ logger = logging.getLogger(__name__)
 
 class Retriever:
     """
-    Handles vector similarity search via Pinecone with metadata-filtered retrieval.
-    Uses farm_context to build Pinecone filter expressions for personalized results.
+    Handles vector similarity search via Supabase pgvector with metadata-filtered retrieval.
+    Uses farm_context to build filters for personalized results.
     """
 
     def __init__(self):
-        self.store = PineconeStore()
+        self.store = SupabaseStore()
 
     def _build_metadata_filter(self, farm_context: Dict[str, Any]) -> Optional[Dict]:
         """

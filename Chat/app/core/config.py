@@ -22,13 +22,14 @@ class Settings(BaseSettings):
     # Gemini
     GEMINI_API_KEY: str = Field(..., env="GEMINI_API_KEY")
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
-    GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-001"
 
     # Pollinations AI
     POLLINATION_API_KEY: str | None = Field(None, env="POLLINATION_API_KEY")
 
     # Sarvam AI
     SARWAM_API_KEY: str | None = Field(None, env="SARWAM_API_KEY")
+    SARVAM_CHAT_MODEL: str = Field("sarvam-105b", env="SARVAM_CHAT_MODEL")
+    EMBEDDING_MODEL: str = Field("google/embeddinggemma-300m", env="EMBEDDING_MODEL")
 
     # Sensor Hardware
     SENSOR_HARDWARE_URL: str | None = Field(None, env="SENSOR_HARDWARE_URL")
@@ -54,9 +55,9 @@ class Settings(BaseSettings):
     PINECONE_INDEX_NAME: str | None = Field("agriassist", env="PINECONE_INDEX_NAME")
     PINECONE_NAMESPACE: str = Field("tn_agri_v2", env="PINECONE_NAMESPACE")
 
-    # Supabase (Optional/Deprecated)
-    SUPABASE_URL: str | None = None
-    SUPABASE_SERVICE_ROLE_KEY: str | None = None
+    # Supabase
+    SUPABASE_URL: str = Field(..., env="SUPABASE_URL")
+    SUPABASE_SERVICE_ROLE_KEY: str = Field(..., env="SUPABASE_SERVICE_ROLE_KEY")
 
     # Push Notifications (VAPID)
     VAPID_PUBLIC_KEY: str | None = Field(None, env="VAPID_PUBLIC_KEY")

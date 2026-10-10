@@ -38,3 +38,24 @@ async def generate_chat_response(req: Request, request: ChatRequest, _=Depends(r
     except Exception as e:
         logger.error(f"Chat generation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate AI response")
+
+from app.services.chat.agent_service import AgentService
+from typing import List, Dict, Any
+
+class AgentRequest(BaseModel):
+    messages: List[Dict[str, Any]]
+    language: Optional[str] = "en"
+
+agent_service = AgentService()
+
+@router.post("/agent")
+async def generate_agent_response(req: Request, request: AgentRequest, _=Depends(rate_limit)):
+    """
+    New unified endpoint for AgriAssist Seva AI using Sarvam 105b tool calling.
+    """
+    try:
+        response = await agent_service.chat(request.messages)
+        return response
+    except Exception as e:
+        logger.error(f"Agent error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to run agent")

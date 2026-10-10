@@ -1,0 +1,497 @@
+[
+{
+"scheme_name": "PM Kisan Samman Nidhi (PM-KISAN)",
+"region": "Pan-India ",
+"applicable_crops": "All cultivable crops (cereals, pulses, oilseeds,
+cotton, sugarcane, etc.)",
+"eligibility": "Landholding small/marginal farmers (≤2 ha), including SC/ST
+and women owners ",
+"description":
+"Central income-support scheme providing ₹6,000 per year in 3 installments to
+eligible farmer families for agricultural inputs .",
+"benefit_amount": "₹6,000 per year",
+"scheme_id": "PMKSN"
+},
+{
+"scheme_name": "Pradhan Mantri Krishi Sinchai Yojana (PMKSY)",
+"region": "Pan-India ",
+"applicable_crops": "All irrigated crops (e.g. rice, wheat, cotton,
+vegetables)",
+"eligibility": "All farmers (especially small/marginal) in rainfed and
+irrigated areas ",
+"description": "Irrigation scheme ('Har Khet Ko Paani') launched 2015,
+integrating water projects and providing subsidies for drip/sprinkler microirrigation .",
+"benefit_amount": "Subsidy up to ~85% of micro-irrigation cost",
+"scheme_id": "PMKSY"
+},
+{
+"scheme_name": "e-NAM (National Agriculture Market)",
+"region": "Pan-India (all states/UTs with APMC linkage)",
+"applicable_crops": "All agri-produce traded in mandis (cereals, pulses,
+oilseeds, fruits, vegetables, spices, etc.)",
+"eligibility":
+"Farmers, traders and FPOs registered with participating APMC markets",
+"description": "Digital trading platform linking state mandis for
+transparent auction of farm produce. Enables wider market access and fair
+pricing through real-time bidding .",
+"benefit_amount": "N/A (improved price realization)",
+"scheme_id": "eNAM"
+},
+{
+"scheme_name": "Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+"region": "Pan-India (state-specific implementation)",
+"applicable_crops": "Food crops (cereals, millets, pulses), oilseeds and
+1
+1
+1
+2
+2
+2 3
+4
+1
+annual horticultural crops ",
+"eligibility": "All farmers (loanee and voluntary) growing notified crops",
+"description": "Crop insurance scheme covering pre-sowing to post-harvest
+losses. Farmers pay minimal premiums (max 2% of sum insured for Kharif, 1.5% for
+Rabi, 5% for others), with the rest subsidized . Provides claim payouts for
+crop damage from natural calamities.",
+"benefit_amount": "Premium subsidy (farmers pay 1.5–5% of insured value)
+",
+"scheme_id": "PMFBY"
+},
+{
+"scheme_name": "Ayushman Sahakar Scheme",
+"region": "Pan-India",
+"applicable_crops": "N/A (healthcare cooperatives)",
+"eligibility": "Cooperative societies engaged in healthcare (hospitals,
+clinics, AYUSH, medical education) ",
+"description": "NCDC scheme funding cooperatives in health sector. Provides
+low-interest loans (up to ₹10,000 crore total) for establishment, modernization
+and expansion of rural/urban healthcare infrastructure
+. Women-majority co-ops get extra interest subvention.",
+"benefit_amount": "Up to ₹10,000 crore in loans ",
+"scheme_id": "AyushS"
+},
+{
+"scheme_name": "Pradhan Mantri Kisan Maan-Dhan Yojana (PM-KMY)",
+"region": "Pan-India",
+"applicable_crops": "All (pension scheme)",
+"eligibility": "Landholding small/marginal farmers (≤2 ha), age 18–40 years
+",
+"description": "Voluntary pension scheme: farmers contribute ₹55–200/month
+(matched by govt), and receive a guaranteed pension of ₹3,000 per month on
+turning 60 .",
+"benefit_amount": "₹3,000/month pension after age 60 ",
+"scheme_id": "PMKMY"
+},
+{
+"scheme_name": "Krishi Kalyan Abhiyan",
+"region": "112–117 Aspirational districts nationwide ",
+"applicable_crops": "All crops; also livestock support",
+"eligibility": "Farmers in designated villages (25 per district) of
+aspirational districts",
+"description": "Short-term farming & livestock extension drive (2018–19) in
+aspirational districts. Key activities: free soil health cards, livestock
+vaccinations (FMD/PPR), input mini-kits (pulses/oilseeds seed, horticulture/
+bamboo saplings), NADEP compost pits, micro-irrigation demos, and extensive
+farmer training by KVKs .",
+"benefit_amount": "Inputs/training support (no direct cash)",
+5
+6
+6
+7
+8
+8
+9
+10
+10
+11
+12
+2
+"scheme_id": "KKA"
+},
+{
+"scheme_name": "National Bamboo Mission (NBM)",
+"region": "Selected bamboo-farming districts (e.g. 7 districts in Bihar for
+2024-25) ",
+"applicable_crops": "Bamboo",
+"eligibility": "Land-owning farmers in target districts ",
+"description": "Centrally-sponsored mission promoting high-density bamboo
+cultivation. Farmers receive subsidy and technical support for bamboo saplings
+and cultivation on small plots (0.1–0.5 acre ) to boost rural incomes.",
+"benefit_amount": "Subsidized inputs (no fixed amount)",
+"scheme_id": "NBM"
+},
+{
+"scheme_name": "Green Revolution – Krishonnati Yojana",
+"region": "Pan-India",
+"applicable_crops": "All major crops (via umbrella missions)",
+"eligibility": "Farmers under component missions",
+"description": "Umbrella scheme (since 2016-17) combining 11 agricultural
+missions (NFSM, MIDH, NMOOP, NMSA, extension, etc.) to holistically enhance crop
+yields and farmer income . Funds infrastructure and technology for doubling
+farmers’ income.",
+"benefit_amount": "Varies by component (integrated fund ~₹33,270 crore) ",
+"scheme_id": "GRKY"
+},
+{
+"scheme_name": "Yuva Sahakar Yojana",
+"region": "Pan-India",
+"applicable_crops": "All (cooperative agribusiness projects)",
+"eligibility":
+"Cooperative societies (≥1 year old) led by youth; preference to women/SC/ST/PwD
+groups ",
+"description": "NCDC scheme (launched 2018) to fund young cooperative
+entrepreneurs. Offers low-interest loans from a ₹1,000 crore fund (Cooperative
+Startup & Innovation Fund). Provides up to 80% of project cost (70% for others)
+with 2-year moratorium and interest subvention .",
+"benefit_amount": "Up to 80% project cost financed (total fund ₹1,000 crore)
+",
+"scheme_id": "YuvaS"
+},
+{
+"scheme_name": "Pradhan Mantri Annadata Aay Sanrakshan Abhiyan (PM-AASHA)",
+"region": "Pan-India",
+"applicable_crops": "Notified pulses, oilseeds and copra ; perishable TOP
+crops under MIS",
+"eligibility": "Farmers growing notified pulses/oilseeds/copra",
+13
+14
+15
+16
+16
+17
+18 17
+18
+19
+3
+"description": "Price-support scheme (launched 2018) to ensure MSP for
+pulses, oilseeds, copra. Includes procurement at MSP (PSS) and price-deficiency
+payments (PDPS) to compensate farmers when market prices are low . MIS
+component intervenes in volatile perishable crops (tomato, onion, potato).
+Protects farmers from distress sales.",
+"benefit_amount": "Procurement at MSP (e.g. pulses procured at MSP) ",
+"scheme_id": "PM-AASHA"
+},
+{
+"scheme_name": "Paramparagat Krishi Vikas Yojana (PKVY)",
+"region": "Pan-India (excl. North-East) ",
+"applicable_crops": "All (organic farming)",
+"eligibility": "Farmer groups forming organic-farming clusters (≈20 ha)",
+"description":
+"Cluster-based organic farming scheme under PM-RKVY. Provides ₹31,500/ha over 3
+years: ₹15,000/ha as DBT to farmers for organic inputs, plus funds for marketing
+(₹4,500), certification (₹3,000) and training (₹9,000) . Supports end-to-end
+conversion to organic.",
+"benefit_amount": "₹31,500 per hectare (for 3 years) ",
+"scheme_id": "PKVY"
+},
+{
+"scheme_name": "Pandit Deendayal Upadhyay Unnat Krishi Shiksha Yojana
+(PDDUUKSY)",
+"region": "Pan-India (training centers in multiple states)",
+"applicable_crops": "All (emphasis on organic/natural farming)",
+"eligibility": "Farmers attending training programs",
+"description": "Agricultural education scheme (launched 2016) to train
+farmers in organic, natural and cow-based farming . Through 100+ centers it
+conducts field schools and workshops to raise awareness and skills in
+sustainable farming technologies, aiming to double farmer incomes through
+organic produce .",
+"benefit_amount": "Training and capacity-building (no direct cash)",
+"scheme_id": "PDDUUKSY"
+},
+{
+"scheme_name": "Soil Health Card Scheme",
+"region": "Pan-India ",
+"applicable_crops": "All crop land",
+"eligibility": "All farmers (no specific criteria) ",
+"description": "National soil-testing scheme (launched 2015). Farmers
+receive a Soil Health Card every 3 years with nutrient and pH analysis of their
+soil . This guides balanced fertilizer use and cropping decisions, improving
+yield and reducing costs .",
+"benefit_amount": "Free soil testing and advisory services",
+"scheme_id": "SHC"
+},
+19
+19
+20
+21
+21
+22
+22
+23
+24
+25
+25
+4
+{
+"scheme_name": "Kisan Credit Card (KCC) Scheme",
+"region": "Pan-India",
+"applicable_crops": "All (short-term credit for cultivation)",
+"eligibility": "Individual or joint farmers (owners, tenants,
+sharecroppers), and SHGs/JLGs of farmers ",
+"description": "Bank loan scheme for timely credit. Provides farmers credit
+for cultivation, inputs, post-harvest expenses, allied activities etc., through
+a single credit card. Objectives include meeting short-term crop loans, postharvest loans, marketing expenses, and allied needs .",
+"benefit_amount": "Credit limit as per scale of finance (no fixed rupees)",
+"scheme_id": "KCC"
+},
+{
+"scheme_name": "Agricultural Marketing Infrastructure (AMI) Scheme",
+"region": "Pan-India ",
+"applicable_crops": "Foodgrains and agricultural produce",
+"eligibility": "Cooperative societies/PACS building storage infrastructure
+",
+"description":
+"Provides 33% subsidy for construction of storage godowns for foodgrains (to
+strengthen grain storage and marketing infrastructure) .",
+"benefit_amount": "33% subsidy on storage construction ",
+"scheme_id": "AMI"
+},
+{
+"scheme_name": "Pradhan Mantri KUSUM Yojana",
+"region": "Pan-India",
+"applicable_crops": "All (irrigation pumps) ",
+"eligibility": "Farmers with irrigation pumps (canal/well)\n",
+"description": "Scheme to solarize irrigation and power supply. Subsidizes
+installation of solar agricultural pumps and solarization of existing pumps, and
+also biogas plants, to help farmers use renewable energy for irrigation.",
+"benefit_amount": "Subsidy varying by component (e.g. ~60% for small solar
+pumps)",
+"scheme_id": "PMKUSUM"
+},
+{
+"scheme_name": "Pradhan Mantri Matsya Sampada Yojana (PMMSY)",
+"region": "Pan-India (coastal and inland areas)",
+"applicable_crops": "Fish and Aquatic products",
+"eligibility": "Fishermen, fish farmers and fishery cooperatives",
+"description": "National fisheries scheme to enhance fish production and
+productivity. Invests in hatcheries, cold chains, modern fishing vessels, and
+aquaculture infrastructure. Central share is 20% of the project cost.",
+"benefit_amount": "20% central investment support",
+"scheme_id": "PMMSY"
+},
+26
+27
+28
+28
+28
+28
+5
+{
+"scheme_name": "Agriculture Infrastructure Fund (AIF)",
+"region": "Pan-India ",
+"applicable_crops": "All (post-harvest infrastructure)",
+"eligibility": "Farmers, FPOs, and agro-entrepreneurs for building agriinfrastructure",
+"description":
+"Provides low-interest loans (3% interest subvention) under a corpus of ₹1 lakh
+crore for developing post-harvest infrastructure (cold storage, warehouses,
+processing). Aims to support farmers and FPOs in setting up storage and valueaddition facilities.",
+"benefit_amount": "3% interest subvention on loans ",
+"scheme_id": "AIF"
+},
+{
+"scheme_name": "Rashtriya Krishi Vikas Yojana (RKVY)",
+"region": "Pan-India",
+"applicable_crops": "All (agriculture and allied sectors)",
+"eligibility": "State agriculture projects",
+"description": "Flagship scheme (now RKVY-RAFTAAR) providing flexible
+funding to states for holistic development of agriculture and allied activities.
+Supports irrigation, fodder development, technology adoption, etc.",
+"benefit_amount": "State-wise project fund allotment",
+"scheme_id": "RKVY"
+},
+{
+"scheme_name": "Rashtriya Gokul Mission",
+"region": "Pan-India",
+"applicable_crops": "N/A (dairy cattle)",
+"eligibility": "Cattle breeders and gaushalas",
+"description": "Mission to enhance productivity of indigenous cattle
+(nondescript cows). Provides support for conservation of milch breeds,
+improvement of breed population and quality.",
+"benefit_amount": "Funding through breed improvement programs",
+"scheme_id": "GokulM"
+},
+{
+"scheme_name": "National Mission for Sustainable Agriculture (NMSA)",
+"region": "Pan-India",
+"applicable_crops": "All (climate-resilient focus)",
+"eligibility": "State agriculture initiatives",
+"description": "Scheme promoting sustainable agriculture practices in
+rainfed areas. Focuses on integrated farming, soil health management (e.g., soil
+amendments), rainwater harvesting and resource conservation technologies.",
+"benefit_amount": "Subsidies/grants for sustainable agri practices",
+"scheme_id": "NMSA"
+},
+28
+28
+6
+{
+"scheme_name": "Atmanirbhar Krishi Yojana (Madhya Pradesh)",
+"region": "Madhya Pradesh",
+"applicable_crops": "All (with focus on irrigation)",
+"eligibility": "Farmers in Madhya Pradesh",
+"description": "State scheme offering support for irrigation (e.g. solar
+pumps, dam reconstruction) and free seeds to boost productivity and make
+agriculture self-reliant in MP.",
+"benefit_amount": "State subsidies on pumps and seeds",
+"scheme_id": "ANKY"
+},
+{
+"scheme_name": "Mahatma Jyotiba Phule Karj Mafi Yojana (Karnataka)",
+"region": "Karnataka",
+"applicable_crops": "All",
+"eligibility": "Indebted farmers in Karnataka",
+"description": "State loan-waiver scheme providing relief to farmers by
+waiving outstanding loans up to a specified limit (e.g. ₹2 lakh).",
+"benefit_amount": "Loan waiver up to ₹2 lakh",
+"scheme_id": "MJKMY"
+},
+{
+"scheme_name": "KALIA (Krushak Assistance for Livelihood and Income
+Augmentation) Scheme",
+"region": "Odisha",
+"applicable_crops": "All",
+"eligibility": "Small/marginal farmers, landless agricultural laborers, SC/
+ST families in Odisha",
+"description": "State scheme providing financial assistance of ₹25,000 per
+farm family per year, crop loan waivers, interest-free crop loans, life and
+disability insurance to vulnerable farmers.",
+"benefit_amount": "₹25,000 per farm family per year",
+"scheme_id": "KALIA"
+},
+{
+"scheme_name": "Mukhyamantri Kisan Kalyan Yojana",
+"region": "Madhya Pradesh",
+"applicable_crops": "All",
+"eligibility": "Small and marginal farmers in MP",
+"description": "State scheme aimed at farmers' welfare in Madhya Pradesh.
+Provides subsidies and support to improve farm productivity and incomes (e.g.
+inputs, machinery support).",
+"benefit_amount": "State-funded subsidies",
+"scheme_id": "MKKY"
+},
+{
+"scheme_name": "Rajeev Gandhi Kisan Vikas Yojana",
+7
+"region": "Madhya Pradesh",
+"applicable_crops": "All",
+"eligibility": "Farmers in Madhya Pradesh",
+"description":
+"State flagship scheme to double farmers' income by providing easy loans,
+subsidies on farm equipment, and support for agricultural development
+projects.",
+"benefit_amount": "State support and subsidies",
+"scheme_id": "RGKVY"
+},
+{
+"scheme_name": "Rythu Bandhu Scheme",
+"region": "Telangana",
+"applicable_crops": "All",
+"eligibility": "All land-owning farmers in Telangana",
+"description": "Investment support scheme providing financial assistance of
+₹5,000 per acre for two crops (Kharif and Rabi) per year to farmers, aiming to
+provide livelihood support.",
+"benefit_amount": "₹5,000 per acre per crop",
+"scheme_id": "RythuB"
+},
+{
+"scheme_name": "Mahatma Jyotiba Phule Karj Mafi Yojana (Maharashtra)",
+"region": "Maharashtra",
+"applicable_crops": "All",
+"eligibility": "Farmers in Maharashtra with overdue loans",
+"description": "State loan-waiver program, waiving loans up to ₹2 lakh for
+small and marginal farmers to relieve debt burden.",
+"benefit_amount": "Loan waiver up to ₹2 lakh",
+"scheme_id": "MJKM-MH"
+},
+{
+"scheme_name": "Rashtriya Krishi Vikas Yojana (RAFTAAR)",
+"region": "Pan-India",
+"applicable_crops": "All (agriculture and allied sectors)",
+"eligibility": "State agriculture projects",
+"description": "Umbrella scheme (Renamed RAFTAAR) focusing on value-chain
+development, agri-R&D and innovation to rejuvenate agriculture. Continues RKVY
+focus with emphasis on market-oriented farmers’ incomes.",
+"benefit_amount": "State-wise fund allocation",
+"scheme_id": "RKVY-RAFTAAR"
+},
+{
+"scheme_name": "Krishi Vigyan Kendras (KVKs)",
+"region": "Pan-India (District level centers)",
+"applicable_crops": "All",
+"eligibility": "All farmers in jurisdiction",
+8
+"description":
+"ICAR-run extension centers in each district that demonstrate new farm
+technologies and provide training to farmers, thereby improving farm practices
+and productivity.",
+"benefit_amount": "Training and advisory support",
+"scheme_id": "KVK"
+},
+{
+"scheme_name": "Gramin Bhandaran Yojana",
+"region": "Pan-India",
+"applicable_crops": "All (agri-produce)",
+"eligibility": "Rural SHGs, FPOs, cooperatives",
+"description":
+"Scheme providing capital subsidy (25-33%) to establish rural godowns and
+community storage (earthen bins, warehouses) to reduce post-harvest losses and
+improve storage infrastructure.",
+"benefit_amount": "Up to 33% capital subsidy",
+"scheme_id": "GBY"
+},
+{
+"scheme_name": "Ladli Behna Yojana",
+"region": "Haryana",
+"applicable_crops": "All",
+"eligibility": "Women farmers in Haryana",
+"description": "State scheme to empower women in agriculture by providing
+financial support, training and resources for women farmers to enhance their
+livelihoods.",
+"benefit_amount": "State-provided support to women",
+"scheme_id": "LadliB"
+},
+{
+"scheme_name": "Krishi Bhagya Yojana",
+"region": "Odisha and other rainfed states",
+"applicable_crops": "Millets, pulses, oilseeds (dryland crops)",
+"eligibility": "Dryland farmers",
+"description": "State-level initiative focusing on dryland (rainfed)
+agriculture. Provides inputs like drought-tolerant seeds and micronutrients, and
+promotes soil-moisture conservation techniques to improve yields in dry areas.",
+"benefit_amount": "Subsidies for inputs",
+"scheme_id": "KrishiBh"
+},
+{
+"scheme_name": "Rajiv Gandhi Kisan Nyay Yojana",
+"region": "Madhya Pradesh",
+"applicable_crops": "Pulses (Urad, Masoor) and Soybean",
+"eligibility": "Farmers growing specified crops in MP",
+"description": "State income support scheme providing ₹4,000 per acre for
+9
+pulses (Urad, Masoor) and ₹2,250 per acre for soybean to encourage production of
+pulses and oilseeds.",
+"benefit_amount": "₹4,000 per acre for pulses; ₹2,250 per acre for soybean",
+"scheme_id": "RGKNY"
+},
+{
+"scheme_name": "Soil Health Card Scheme",
+"region": "Pan-India",
+"applicable_crops": "All",
+"eligibility": "All farmers",
+"description": "As above (duplicate entry for Soil Health).",
+"benefit_amount": "As above",
+"scheme_id": "SHC-dup"
+},
+{
+"scheme_name": "AgriTech Empowerment Program",
+"region": "Pan-India",
+"applicable_crops": "All",
+"eligibility": "Farmers and agri-entrepreneurs",
+"description": "Program to train and empower farmers on use of modern agritech (drones, sensors, apps) and digital agriculture practices to enhance
+productivity.",
+"benefit_amount": "Training and tech support",
+"scheme_id": "ATEP"
+}
+]

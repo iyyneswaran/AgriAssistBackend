@@ -3,7 +3,7 @@ import { requestOTP, verifyOTP, refresh } from "../controller/auth";
 import { registerLand, getMyLand, updateLand } from "../controller/landController";
 import { addField, getMyFields, deleteField } from "../controller/fieldController";
 import { listCrops, assignCrop, updateAssignmentStatus, getMyActiveAssignments } from "../controller/cropController";
-import { getMyConversations, getConversationMessages, startConversation, addMessage, deleteConversation } from "../controller/chatController";
+import { getMyConversations, getConversationMessages, startConversation, addMessage, addAgentMessage, deleteConversation } from "../controller/chatController";
 import { updateProfile, getProfile, requestMobileUpdate, verifyMobileUpdate } from "../controller/userController";
 import { protectedTest, adminTest } from "../controller/test";
 import { verifyAccessToken, verifyRefreshToken } from "../valid/jwt";
@@ -48,6 +48,7 @@ router.get('/chat/conversations', verifyAccessToken, paginationValidation, getMy
 router.post('/chat/conversations', verifyAccessToken, startConversationValidation, startConversation);
 router.get('/chat/messages/:conversationId', verifyAccessToken, conversationIdValidation, paginationValidation, getConversationMessages);
 router.post('/chat/conversations/:conversationId/messages', verifyAccessToken, conversationIdValidation, addMessageValidation, addMessage);
+router.post('/chat/conversations/:conversationId/agent-messages', verifyAccessToken, conversationIdValidation, addMessageValidation, addAgentMessage);
 router.delete('/chat/conversations/:conversationId', verifyAccessToken, conversationIdValidation, deleteConversation);
 
 // Temporary test APIs
