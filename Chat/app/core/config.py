@@ -56,8 +56,11 @@ class Settings(BaseSettings):
     PINECONE_NAMESPACE: str = Field("tn_agri_v2", env="PINECONE_NAMESPACE")
 
     # Supabase
-    SUPABASE_URL: str = Field(..., env="SUPABASE_URL")
-    SUPABASE_SERVICE_ROLE_KEY: str = Field(..., env="SUPABASE_SERVICE_ROLE_KEY")
+    # Supabase backs the optional scheme-recommendation/RAG features.  Keep the
+    # API available when it has not been configured yet; SupabaseStore will
+    # disable only those features and log a warning.
+    SUPABASE_URL: str | None = Field(None, env="SUPABASE_URL")
+    SUPABASE_SERVICE_ROLE_KEY: str | None = Field(None, env="SUPABASE_SERVICE_ROLE_KEY")
 
     # Push Notifications (VAPID)
     VAPID_PUBLIC_KEY: str | None = Field(None, env="VAPID_PUBLIC_KEY")

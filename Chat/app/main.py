@@ -71,6 +71,11 @@ app.include_router(preference_router, prefix="/api")
 
 @app.on_event("startup")
 async def startup_event():
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
+        logger.warning(
+            "Supabase is not configured. Scheme recommendation and RAG features are disabled. "
+            "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to enable them."
+        )
     await init_db()
     await init_redis()
     # Load crop disease detection model at startup
