@@ -16,31 +16,35 @@ class ChatRequest(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
+from app.services.chat.agent_service import AgentService
+from typing import List, Dict, Any
+
+agent_service = AgentService()
+
 @router.post("/generate")
 async def generate_chat_response(req: Request, request: ChatRequest, _=Depends(rate_limit)):
     """
     Internal HTTP endpoint for AI chat generation via Sarvam AI.
-    Called by the Express server (which already authenticates the user).
-    Sarvam-m natively responds in the user's language.
+    Routes to Seva AI Agent with fallback to legacy chat service.
     """
     try:
-        # Get AI Response natively
-        final_response = await generate_ai_response(
-            user_id="internal",
-            session_id=request.session_id,
-            language=request.language or "en",
-            content=request.message,
-            latitude=request.latitude,
-            longitude=request.longitude,
-        )
-        
-        return {"response": final_response}
-    except Exception as e:
-        logger.error(f"Chat generation error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate AI response")
-
-from app.services.chat.agent_service import AgentService
-from typing import List, Dict, Any
+        agent_resp = await agent_service.chat([{"role": "user", "content": request.message}])
+        return {"response": agent_resp.get("content", "")}
+    except Exception as agent_err:
+        logger.warning(f"AgentService generation failed ({agent_err}), falling back to chat_service")
+        try:
+            final_response = await generate_ai_response(
+                user_id="internal",
+                session_id=request.session_id,
+                language=request.language or "en",
+                content=request.message,
+                latitude=request.latitude,
+                longitude=request.longitude,
+            )
+            return {"response": final_response}
+        except Exception as e:
+            logger.error(f"Chat generation error: {e}")
+            raise HTTPException(status_code=500, detail="Failed to generate AI response")
 
 class AgentRequest(BaseModel):
     messages: List[Dict[str, Any]]

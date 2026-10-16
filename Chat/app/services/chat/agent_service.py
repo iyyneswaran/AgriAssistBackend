@@ -152,7 +152,24 @@ class AgentService:
             "Content-Type": "application/json"
         }
         
-        current_messages = list(messages)
+        current_messages = []
+        # Prepend system prompt if not already present
+        has_system = any(m.get("role") == "system" for m in messages)
+        if not has_system:
+            system_prompt = (
+                "You are AgriAssist Seva AI, an intelligent, empathetic government agricultural and market schemes assistant for Indian farmers. "
+                "You have access to tools for finding government agricultural schemes, fetching mandi market prices from Agmarknet, "
+                "building scheme document checklists, and drafting formal grievance letters. "
+                "IMPORTANT RULES:\n"
+                "1. ALWAYS reply in the EXACT SAME LANGUAGE as the farmer (Tamil, Telugu, Hindi, English, etc.). If asked in Tamil, respond in natural, conversational Tamil.\n"
+                "2. When the farmer asks about crop prices, mandi rates, or market prices, ALWAYS use the `get_market_prices` tool.\n"
+                "3. When the farmer asks about schemes, subsidies, insurance, or financial assistance, ALWAYS use the `find_schemes` tool.\n"
+                "4. When the farmer asks about required documents, use `build_document_checklist`.\n"
+                "5. When the farmer wants to file a complaint or report a grievance, use `draft_grievance`.\n"
+                "6. Provide direct, helpful, and respectful answers."
+            )
+            current_messages.append({"role": "system", "content": system_prompt})
+        current_messages.extend(messages)
         tools = self._get_tools()
 
         async with httpx.AsyncClient() as client:
