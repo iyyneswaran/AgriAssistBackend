@@ -41,7 +41,7 @@ class PushService:
     """Delivers browser push notifications using the Web Push protocol."""
 
     def __init__(self) -> None:
-        self.vapid_public_key = settings.VAPID_PUBLIC_KEY
+        self.VITE_VAPID_PUBLIC_KEY = settings.VITE_VAPID_PUBLIC_KEY
         self.vapid_private_key = settings.VAPID_PRIVATE_KEY
         self.vapid_claims = {
             "sub": f"mailto:{settings.VAPID_CONTACT_EMAIL}",
@@ -49,7 +49,7 @@ class PushService:
 
     @property
     def is_configured(self) -> bool:
-        return bool(self.vapid_public_key and self.vapid_private_key)
+        return bool(self.VITE_VAPID_PUBLIC_KEY and self.vapid_private_key)
 
     async def send_notification(
         self,

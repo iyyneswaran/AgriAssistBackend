@@ -86,7 +86,7 @@ async def startup_event():
     except Exception as e:
         print(f"[WARN] Could not load disease detection model: {e}")
     # Notification system
-    if settings.VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY:
+    if settings.VITE_VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY:
         print("[OK] Push Notification System Ready (VAPID configured)")
     else:
         print("[WARN] Push Notifications: VAPID keys not configured")

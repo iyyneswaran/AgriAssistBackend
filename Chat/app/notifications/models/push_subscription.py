@@ -23,7 +23,7 @@ class PushSubscription(Base):
     p256dh_key: Mapped[str] = mapped_column(Text, nullable=False)
     auth_key: Mapped[str] = mapped_column(Text, nullable=False)
     content_encoding: Mapped[str] = mapped_column(String(30), nullable=False, default="aes128gcm")
-    vapid_public_key_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    VITE_VAPID_PUBLIC_KEY_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     # Device metadata
     user_agent: Mapped[str | None] = mapped_column(Text, nullable=True)

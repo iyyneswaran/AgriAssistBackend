@@ -62,10 +62,10 @@ def _hash_value(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def _vapid_public_key_hash() -> Optional[str]:
-    if not settings.VAPID_PUBLIC_KEY:
+def _VITE_VAPID_PUBLIC_KEY_hash() -> Optional[str]:
+    if not settings.VITE_VAPID_PUBLIC_KEY:
         return None
-    return _hash_value(settings.VAPID_PUBLIC_KEY)
+    return _hash_value(settings.VITE_VAPID_PUBLIC_KEY)
 
 
 def _origin_allowed(origin: Optional[str]) -> bool:
@@ -146,14 +146,14 @@ def _subscription_response(sub: PushSubscription) -> PushSubscriptionResponse:
 
 
 @router.get("/vapid-key", response_model=VAPIDPublicKeyResponse)
-async def get_vapid_public_key():
+async def get_VITE_VAPID_PUBLIC_KEY():
     """Return the server's public VAPID key for PushManager.subscribe()."""
-    if not settings.VAPID_PUBLIC_KEY:
+    if not settings.VITE_VAPID_PUBLIC_KEY:
         raise HTTPException(
             status_code=503,
             detail="Push notifications are not configured on this server",
         )
-    return VAPIDPublicKeyResponse(public_key=settings.VAPID_PUBLIC_KEY)
+    return VAPIDPublicKeyResponse(public_key=settings.VITE_VAPID_PUBLIC_KEY)
 
 
 @router.get("/status", response_model=PushSubscriptionStatusResponse)
@@ -175,7 +175,7 @@ async def get_push_status(
     subscriptions = result.scalars().all()
 
     return PushSubscriptionStatusResponse(
-        vapid_configured=bool(settings.VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY),
+        vapid_configured=bool(settings.VITE_VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY),
         subscriptions=[_subscription_response(sub) for sub in subscriptions],
     )
 
@@ -191,7 +191,7 @@ async def subscribe_push(
     _validate_origin(request)
     user_id = _extract_user_id(authorization)
 
-    if not settings.VAPID_PUBLIC_KEY or not settings.VAPID_PRIVATE_KEY:
+    if not settings.VITE_VAPID_PUBLIC_KEY or not settings.VAPID_PRIVATE_KEY:
         raise HTTPException(
             status_code=503,
             detail="Push notifications are not configured on this server",
@@ -233,7 +233,7 @@ async def subscribe_push(
         sub.p256dh_key = payload.keys.p256dh
         sub.auth_key = payload.keys.auth
         sub.content_encoding = payload.content_encoding or "aes128gcm"
-        sub.vapid_public_key_hash = _vapid_public_key_hash()
+        sub.VITE_VAPID_PUBLIC_KEY_hash = _VITE_VAPID_PUBLIC_KEY_hash()
         sub.user_agent = payload.user_agent
         sub.device_name = payload.device_name
         sub.browser = payload.browser or inferred_browser
@@ -252,7 +252,7 @@ async def subscribe_push(
             p256dh_key=payload.keys.p256dh,
             auth_key=payload.keys.auth,
             content_encoding=payload.content_encoding or "aes128gcm",
-            vapid_public_key_hash=_vapid_public_key_hash(),
+            VITE_VAPID_PUBLIC_KEY_hash=_VITE_VAPID_PUBLIC_KEY_hash(),
             user_agent=payload.user_agent,
             device_name=payload.device_name,
             browser=payload.browser or inferred_browser,
@@ -403,7 +403,7 @@ async def get_push_diagnostics(
     ).scalar()
 
     return PushDiagnosticsResponse(
-        vapid_configured=bool(settings.VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY),
+        vapid_configured=bool(settings.VITE_VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY),
         active_subscription_count=active_count,
         inactive_subscription_count=inactive_count,
         last_delivery_status=last_delivery.status if last_delivery else None,

@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str | None = Field(None, env="SUPABASE_SERVICE_ROLE_KEY")
 
     # Push Notifications (VAPID)
-    VAPID_PUBLIC_KEY: str | None = Field(None, env="VAPID_PUBLIC_KEY")
+    VITE_VAPID_PUBLIC_KEY: str | None = Field(None, env="VITE_VAPID_PUBLIC_KEY")
     VAPID_PRIVATE_KEY: str | None = Field(None, env="VAPID_PRIVATE_KEY")
     VAPID_CONTACT_EMAIL: str = Field("admin@agriassist.app", env="VAPID_CONTACT_EMAIL")
 

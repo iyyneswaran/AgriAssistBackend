@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
     p256dh_key TEXT NOT NULL,
     auth_key TEXT NOT NULL,
     content_encoding VARCHAR(30) NOT NULL DEFAULT 'aes128gcm',
-    vapid_public_key_hash VARCHAR(64),
+    VITE_VAPID_PUBLIC_KEY_hash VARCHAR(64),
     user_agent TEXT,
     device_name VARCHAR(100),
     browser VARCHAR(80),
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
 
 ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS endpoint_hash VARCHAR(64);
 ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS content_encoding VARCHAR(30) NOT NULL DEFAULT 'aes128gcm';
-ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS vapid_public_key_hash VARCHAR(64);
+ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS VITE_VAPID_PUBLIC_KEY_hash VARCHAR(64);
 ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS browser VARCHAR(80);
 ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS platform VARCHAR(80);
 ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS failure_count INTEGER DEFAULT 0;

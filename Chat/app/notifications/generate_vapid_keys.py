@@ -34,7 +34,7 @@ def generate_keys():
     print("  VAPID Keys Generated — Add these to your .env file")
     print("=" * 60)
     print()
-    print(f"VAPID_PUBLIC_KEY={pub_b64}")
+    print(f"VITE_VAPID_PUBLIC_KEY={pub_b64}")
     print(f"VAPID_PRIVATE_KEY={priv_b64}")
     print(f"VAPID_CONTACT_EMAIL=admin@agriassist.app")
     print()
