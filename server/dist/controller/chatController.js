@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteConversation = exports.addMessage = exports.startConversation = exports.getConversationMessages = exports.getMyConversations = void 0;
+exports.addAgentMessage = exports.deleteConversation = exports.addMessage = exports.startConversation = exports.getConversationMessages = exports.getMyConversations = void 0;
 const db_1 = require("../db");
 const axios_1 = __importDefault(require("axios"));
 /**
@@ -242,4 +242,82 @@ const deleteConversation = async (req, res) => {
     }
 };
 exports.deleteConversation = deleteConversation;
+/**
+ * Add a message to a conversation using the Seva AI Agent
+ */
+const addAgentMessage = async (req, res) => {
+    try {
+        const user = req.user;
+        const conversationId = req.params.conversationId;
+        const messageData = req.body;
+        const language = messageData.language || 'en';
+        // 1. Verify ownership
+        const conversation = await db_1.db.aIConversation.findFirst({
+            where: { id: conversationId, userId: user.id }
+        });
+        if (!conversation) {
+            return res.status(404).json({ message: "Conversation not found or access denied" });
+        }
+        // 2. Create USER message
+        const userMessage = await db_1.db.aIChatMessage.create({
+            data: {
+                conversationId,
+                sender: 'USER',
+                messageType: messageData.messageType || 'TEXT',
+                textContent: messageData.textContent,
+                filePath: messageData.filePath || null
+            }
+        });
+        // 3. Fetch past messages for context
+        const pastMessages = await db_1.db.aIChatMessage.findMany({
+            where: { conversationId },
+            orderBy: { createdAt: 'asc' },
+            take: 20 // Send last 20 messages for context
+        });
+        const messages = pastMessages.map(m => ({
+            role: m.sender === 'USER' ? 'user' : 'assistant',
+            content: m.textContent
+        }));
+        // 4. Call Python Agent endpoint
+        try {
+            const pythonUrl = process.env.PYTHON_BACKEND_URL || 'http://localhost:8001';
+            const aiResponse = await axios_1.default.post(`${pythonUrl}/api/chat/agent`, {
+                messages: messages,
+                language: language
+            }, {
+                headers: { 'Authorization': req.headers.authorization || '' }
+            });
+            // aiResponse.data is the final message dictionary from Sarvam: { role: 'assistant', content: '...' }
+            const aiResponseText = aiResponse.data.content || "No response";
+            // 5. Create AI message
+            const aiMessage = await db_1.db.aIChatMessage.create({
+                data: {
+                    conversationId,
+                    sender: 'AI',
+                    messageType: 'TEXT',
+                    textContent: aiResponseText,
+                }
+            });
+            res.status(201).json({ userMessage, aiMessage });
+            return;
+        }
+        catch (pythonErr) {
+            console.error("Failed to generate Agent response:", pythonErr.message);
+            const errorAiMessage = await db_1.db.aIChatMessage.create({
+                data: {
+                    conversationId,
+                    sender: 'AI',
+                    messageType: 'TEXT',
+                    textContent: "Sorry, the Seva Agent encountered an error. Please try again.",
+                }
+            });
+            res.status(201).json({ userMessage, aiMessage: errorAiMessage });
+            return;
+        }
+    }
+    catch (err) {
+        res.status(500).json({ message: `Failed to add agent message: ${err.message}` });
+    }
+};
+exports.addAgentMessage = addAgentMessage;
 //# sourceMappingURL=chatController.js.map

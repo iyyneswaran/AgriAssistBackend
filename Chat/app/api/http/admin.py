@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from app.core.security import get_current_user, verify_role
 from app.core.rate_limiter import rate_limit_dependency
-from app.services.rag.ingestion_service import IngestionService
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -34,6 +33,7 @@ async def ingest_schemes():
     Clears existing index and re-ingests all documents.
     """
     try:
+        from app.services.rag.ingestion_service import IngestionService
         ingestion_service = IngestionService()
         
         # Clear existing data

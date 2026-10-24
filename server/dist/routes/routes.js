@@ -43,6 +43,7 @@ router.get('/chat/conversations', jwt_1.verifyAccessToken, chatValid_1.paginatio
 router.post('/chat/conversations', jwt_1.verifyAccessToken, chatValid_1.startConversationValidation, chatController_1.startConversation);
 router.get('/chat/messages/:conversationId', jwt_1.verifyAccessToken, chatValid_1.conversationIdValidation, chatValid_1.paginationValidation, chatController_1.getConversationMessages);
 router.post('/chat/conversations/:conversationId/messages', jwt_1.verifyAccessToken, chatValid_1.conversationIdValidation, chatValid_1.addMessageValidation, chatController_1.addMessage);
+router.post('/chat/conversations/:conversationId/agent-messages', jwt_1.verifyAccessToken, chatValid_1.conversationIdValidation, chatValid_1.addMessageValidation, chatController_1.addAgentMessage);
 router.delete('/chat/conversations/:conversationId', jwt_1.verifyAccessToken, chatValid_1.conversationIdValidation, chatController_1.deleteConversation);
 // Temporary test APIs
 router.get('/test/protected', jwt_1.verifyAccessToken, test_1.protectedTest);

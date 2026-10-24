@@ -8,10 +8,36 @@ const cors_1 = __importDefault(require("cors"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const app = (0, express_1.default)();
+// Trust one level of proxy (Railway's reverse proxy)
+app.set("trust proxy", 1);
+const allowedOrigins = [
+    "https://agri-assist-frontend-seven.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+];
 app.use((0, cors_1.default)({
-    origin: true,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, server-to-server, curl)
+        if (!origin)
+            return callback(null, true);
+        // Allow known frontend domains or any preview deployment on Vercel
+        if (allowedOrigins.includes(origin) ||
+            /^https:\/\/.*\.vercel\.app$/.test(origin)) {
+            return callback(null, true);
+        }
+        // Fallback: allow and reflect origin
+        return callback(null, true);
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+    optionsSuccessStatus: 200,
 }));
+// ── Lightweight health check (before rate limiter) ──
+app.get("/health", (_req, res) => {
+    res.status(200).json({ ok: true });
+});
 // Global rate limiter: 500 requests per 15 minutes
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000,
@@ -21,8 +47,5 @@ const limiter = (0, express_rate_limit_1.default)({
 app.use(limiter);
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
-// Error Handling Middleware (must be last)
-const errorMiddleware_1 = require("./valid/errorMiddleware");
-app.use(errorMiddleware_1.errorMiddleware);
 exports.default = app;
 //# sourceMappingURL=app.js.map

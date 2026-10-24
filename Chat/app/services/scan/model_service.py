@@ -1,16 +1,15 @@
 """
 Model Service — EfficientNet-B0 Disease Detection
-Singleton pattern: model loaded once, reused across all requests.
+Lazy-loaded singleton: model loaded on first prediction, reused across requests.
+Thread-safe initialization prevents duplicate loads from concurrent requests.
 """
 
-import torch
 import json
 import logging
+import threading
 from pathlib import Path
-from torchvision import models, transforms
-from PIL import Image
 from io import BytesIO
-from typing import Tuple
+from typing import Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -19,65 +18,86 @@ _APP_DIR = Path(__file__).resolve().parent.parent.parent  # Backend/Chat/app
 _MODEL_PATH = _APP_DIR / "ml" / "efficientnet_fixed.pth"
 _LABEL_PATH = _APP_DIR / "ml" / "efficientnet_labels.json"
 
-# ── Device ──
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # ── Singleton state ──
 _model = None
 _class_names = None
+_transform = None
+_device = None
+_init_lock = threading.Lock()
 
-# ── Preprocessing pipeline (must match training) ──
-_transform = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-])
+
+def _get_device():
+    """Lazily determine the compute device."""
+    import torch
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def _get_transform():
+    """Lazily build the preprocessing pipeline (must match training)."""
+    from torchvision import transforms
+    return transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ])
 
 
 def load_model() -> None:
     """
     Load the EfficientNet-B0 model and class labels into memory.
-    Called once at application startup.
+    Thread-safe: uses a lock so concurrent first requests don't load duplicates.
     """
-    global _model, _class_names
+    global _model, _class_names, _transform, _device
 
+    # Fast path: already loaded
     if _model is not None:
         logger.info("[ScanModel] Model already loaded, skipping.")
         return
 
-    # Load labels
-    if not _LABEL_PATH.exists():
-        raise FileNotFoundError(f"Label file not found: {_LABEL_PATH}")
+    with _init_lock:
+        # Double-check after acquiring lock
+        if _model is not None:
+            return
 
-    with open(_LABEL_PATH, "r") as f:
-        _class_names = json.load(f)
-    logger.info(f"[ScanModel] Loaded {len(_class_names)} class labels from {_LABEL_PATH.name}")
+        import torch
+        from torchvision import models
 
-    # Load model
-    if not _MODEL_PATH.exists():
-        raise FileNotFoundError(f"Model file not found: {_MODEL_PATH}")
+        _device = _get_device()
+        _transform = _get_transform()
 
-    model = models.efficientnet_b0(weights=None)
-    in_features = model.classifier[1].in_features
-    model.classifier = torch.nn.Sequential(
-        torch.nn.Dropout(0.4),
-        torch.nn.Linear(in_features, 512),
-        torch.nn.ReLU(),
-        torch.nn.Dropout(0.4),
-        torch.nn.Linear(512, len(_class_names)),
-    )
+        # Load labels
+        if not _LABEL_PATH.exists():
+            raise FileNotFoundError(f"Label file not found: {_LABEL_PATH}")
 
-    checkpoint = torch.load(_MODEL_PATH, map_location=DEVICE, weights_only=False)
-    state_dict = (
-        checkpoint["model_state_dict"]
-        if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint
-        else checkpoint
-    )
-    model.load_state_dict(state_dict)
-    model.to(DEVICE).eval()
+        with open(_LABEL_PATH, "r") as f:
+            _class_names = json.load(f)
+        logger.info(f"[ScanModel] Loaded {len(_class_names)} class labels from {_LABEL_PATH.name}")
 
-    _model = model
-    logger.info(f"[ScanModel] EfficientNet-B0 loaded on {DEVICE}")
+        # Load model
+        if not _MODEL_PATH.exists():
+            raise FileNotFoundError(f"Model file not found: {_MODEL_PATH}")
+
+        model = models.efficientnet_b0(weights=None)
+        in_features = model.classifier[1].in_features
+        model.classifier = torch.nn.Sequential(
+            torch.nn.Dropout(0.4),
+            torch.nn.Linear(in_features, 512),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.4),
+            torch.nn.Linear(512, len(_class_names)),
+        )
+
+        checkpoint = torch.load(_MODEL_PATH, map_location=_device, weights_only=False)
+        state_dict = (
+            checkpoint["model_state_dict"]
+            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint
+            else checkpoint
+        )
+        model.load_state_dict(state_dict)
+        model.to(_device).eval()
+
+        _model = model
+        logger.info(f"[ScanModel] EfficientNet-B0 loaded on {_device}")
 
 
 def _parse_label(raw_label: str) -> Tuple[str, str, bool]:
@@ -96,16 +116,24 @@ def _parse_label(raw_label: str) -> Tuple[str, str, bool]:
 def predict(image_bytes: bytes) -> dict:
     """
     Run inference on raw image bytes.
+    Lazily loads the model on first call if not already loaded.
     Returns dict with: disease_label, crop_name, disease_name, confidence, is_healthy
     """
+    # Lazy-load model on first predict call
+    if _model is None:
+        load_model()
+
     if _model is None or _class_names is None:
         raise RuntimeError("Model not loaded. Call load_model() first.")
+
+    import torch
+    from PIL import Image
 
     # Open image from bytes (no disk write)
     img = Image.open(BytesIO(image_bytes)).convert("RGB")
 
     # Preprocess
-    img_tensor = _transform(img).unsqueeze(0).to(DEVICE)
+    img_tensor = _transform(img).unsqueeze(0).to(_device)
 
     # Inference
     with torch.no_grad():

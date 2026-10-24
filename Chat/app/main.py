@@ -31,6 +31,12 @@ app = FastAPI(
 )
 
 
+# ── Lightweight health endpoint (no ML, no DB, no rate limit) ──
+@app.get("/health")
+async def health_check():
+    return {"ok": True}
+
+
 # Debug: show actual errors instead of generic 500
 if settings.DEBUG:
     @app.exception_handler(Exception)
@@ -76,15 +82,17 @@ async def startup_event():
             "Supabase is not configured. Scheme recommendation and RAG features are disabled. "
             "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to enable them."
         )
-    await init_db()
-    await init_redis()
-    # Load crop disease detection model at startup
     try:
-        from app.services.scan.model_service import load_model
-        load_model()
-        print("[OK] Crop Disease Detection Model Loaded")
+        await init_db()
     except Exception as e:
-        print(f"[WARN] Could not load disease detection model: {e}")
+        logger.error(f"Database initialization failed at startup: {e}")
+    try:
+        await init_redis()
+    except Exception as e:
+        logger.error(f"Redis initialization failed at startup: {e}")
+    # NOTE: Crop disease detection model is now lazy-loaded on first /api/scan request
+    # instead of blocking startup. This lets uvicorn bind to PORT quickly on Railway.
+    print("[OK] Crop Disease Detection Model will be loaded on first scan request (lazy)")
     # Notification system
     if settings.VITE_VAPID_PUBLIC_KEY and settings.VAPID_PRIVATE_KEY:
         print("[OK] Push Notification System Ready (VAPID configured)")

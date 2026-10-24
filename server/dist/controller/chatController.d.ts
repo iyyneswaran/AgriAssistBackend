@@ -20,4 +20,8 @@ export declare const addMessage: (req: Request, res: Response) => Promise<Respon
  * Delete an AI Conversation and all its messages
  */
 export declare const deleteConversation: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+/**
+ * Add a message to a conversation using the Seva AI Agent
+ */
+export declare const addAgentMessage: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 //# sourceMappingURL=chatController.d.ts.map

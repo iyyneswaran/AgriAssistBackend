@@ -17,11 +17,11 @@ huggingface-hub==1.4.1
 gTTS==2.5.4
 pydub==0.25.1
 redis==5.0.4
-torch>=2.0.0
-torchvision>=0.15.0
+# --- CPU-only PyTorch (installed via --extra-index-url in Dockerfile) ---
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
 Pillow>=10.0.0
 pywebpush>=2.0.0
 py-vapid>=1.9.0
-
-sentence-transformers>=2.2.2
+sentence-transformers==6.1.0
 supabase>=2.3.0

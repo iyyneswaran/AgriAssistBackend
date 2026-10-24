@@ -41,6 +41,7 @@ const http_1 = require("http");
 const app_1 = __importDefault(require("./app"));
 const routes_1 = __importDefault(require("./routes/routes"));
 const voiceAgentRoutes_1 = __importStar(require("./voice-agent/voiceAgentRoutes"));
+const errorMiddleware_1 = require("./valid/errorMiddleware");
 const PORT = process.env.PORT || 5000;
 // Mount main API routes
 app_1.default.use("/api", routes_1.default);
@@ -49,6 +50,9 @@ app_1.default.use("/api/voice-agent", voiceAgentRoutes_1.default);
 app_1.default.use("/", (req, res) => {
     res.send("Hello World!");
 });
+// Error handling middleware — must be registered AFTER all routes
+// so it can catch errors thrown by the API handlers above.
+app_1.default.use(errorMiddleware_1.errorMiddleware);
 // ─── Create HTTP server (required for WebSocket support) ────────────
 const server = (0, http_1.createServer)(app_1.default);
 // Set up Voice Agent WebSocket for Twilio media streams

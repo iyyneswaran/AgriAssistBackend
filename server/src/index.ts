@@ -3,6 +3,7 @@ import { createServer } from "http";
 import app from "./app";
 import routes from "./routes/routes";
 import voiceAgentRouter, { setupVoiceAgentWebSocket } from "./voice-agent/voiceAgentRoutes";
+import { errorMiddleware } from "./valid/errorMiddleware";
 import { Request, Response } from "express";
 
 const PORT = process.env.PORT || 5000;
@@ -16,6 +17,10 @@ app.use("/api/voice-agent", voiceAgentRouter);
 app.use("/", (req: Request, res: Response) => {
   res.send("Hello World!");
 });
+
+// Error handling middleware — must be registered AFTER all routes
+// so it can catch errors thrown by the API handlers above.
+app.use(errorMiddleware);
 
 // ─── Create HTTP server (required for WebSocket support) ────────────
 const server = createServer(app);
