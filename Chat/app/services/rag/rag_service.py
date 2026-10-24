@@ -72,16 +72,23 @@ class RagService:
         Recommend relevant agricultural schemes.
         """
 
-        # 2️⃣ Generate embedding & retrieve schemes (with resilient fallback)
+        # 2️⃣ Generate embedding & retrieve schemes (with resilient fallback and strict timeout)
         try:
-            embedding = await self.embedding_service.embed_text(enriched_query)
-            results = await self.retriever.retrieve(
-                embedding=embedding,
-                top_k=top_k + 4,  # Retrieve extra for better re-ranking
-                farm_context=farm_context,
+            import asyncio
+            embedding = await asyncio.wait_for(
+                self.embedding_service.embed_text(enriched_query),
+                timeout=8.0
+            )
+            results = await asyncio.wait_for(
+                self.retriever.retrieve(
+                    embedding=embedding,
+                    top_k=top_k + 4,  # Retrieve extra for better re-ranking
+                    farm_context=farm_context,
+                ),
+                timeout=5.0
             )
         except Exception as e:
-            logger.warning(f"Vector search failed ({e}); falling back to direct database retrieval")
+            logger.warning(f"Vector search failed or timed out ({e}); falling back to direct database retrieval")
             results = await self.retriever.store.get_fallback_schemes(
                 limit=top_k + 4,
                 region=farm_context.get("state") if farm_context else None,

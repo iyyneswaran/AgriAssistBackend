@@ -48,10 +48,23 @@ if settings.DEBUG:
             content={"detail": str(exc), "traceback": tb},
         )
 
-# CORS (important for mobile + web app)
+# CORS (configured for local dev + Vercel production frontend)
+allowed_origins_list = [
+    "https://agri-assist-frontend-seven.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+]
+if settings.ALLOWED_ORIGINS:
+    for o in settings.ALLOWED_ORIGINS.split(","):
+        o = o.strip()
+        if o and o not in allowed_origins_list:
+            allowed_origins_list.append(o)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",")],
+    allow_origins=allowed_origins_list,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,6 +112,19 @@ async def startup_event():
     else:
         print("[WARN] Push Notifications: VAPID keys not configured")
     print("[OK] Agri AI Backend Started")
+
+    # Pre-warm embedding model in the background so the first scheme request has zero latency
+    import asyncio
+    async def _prewarm_embeddings():
+        try:
+            from app.services.rag.embedding_service import EmbeddingService
+            service = EmbeddingService()
+            await asyncio.to_thread(service._ensure_model)
+            logger.info("[Startup] Embedding model pre-warmed successfully in background")
+        except Exception as prewarm_err:
+            logger.warning(f"[Startup] Background embedding pre-warm notice: {prewarm_err}")
+
+    asyncio.create_task(_prewarm_embeddings())
 
 
 @app.on_event("shutdown")

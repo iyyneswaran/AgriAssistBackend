@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     # HuggingFace (Authentication for gated models like google/embeddinggemma-300m and Voice AI)
     HF_TOKEN: str | None = Field(None, env="HF_TOKEN")
-    HUGGINGFACE_API_KEY: str | None = Field(None, env="HUGGINGFACE_API_KEY",)
+    HUGGINGFACE_API_KEY: str | None = Field(None, env="HUGGINGFACE_API_KEY")
     STT_MODEL_ID: str = "ai4bharat/indic-conformer-600m-multilingual"
     TTS_MODEL_ID: str = "ai4bharat/indic-parler-tts"
     VOICE_LANGUAGE: str = "ta"
