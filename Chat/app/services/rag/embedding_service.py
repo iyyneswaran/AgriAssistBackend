@@ -34,15 +34,44 @@ class EmbeddingService:
                 return
 
             try:
+                import os
                 from sentence_transformers import SentenceTransformer
+
+                hf_token = (
+                    getattr(settings, "HF_TOKEN", None)
+                    or settings.HUGGINGFACE_API_KEY
+                    or os.environ.get("HF_TOKEN")
+                    or os.environ.get("HUGGING_FACE_HUB_TOKEN")
+                )
+
                 logger.info(f"Loading embedding model: {self.model_name}")
-                model = SentenceTransformer(self.model_name, trust_remote_code=True)
+                model = SentenceTransformer(
+                    self.model_name,
+                    trust_remote_code=True,
+                    token=hf_token,
+                )
                 logger.info("Embedding model loaded successfully.")
                 EmbeddingService._shared_model = model
                 EmbeddingService._shared_model_name = self.model_name
                 self._model = model
             except Exception as e:
                 logger.error(f"Failed to load embedding model {self.model_name}: {e}")
+                # Fallback to public ungated 768-dim model if gated access fails
+                if "gated" in str(e).lower() or "restricted" in str(e).lower() or "401" in str(e):
+                    logger.warning(
+                        "Falling back to ungated 768-dim model (sentence-transformers/all-mpnet-base-v2) "
+                        "due to restricted HuggingFace repo access."
+                    )
+                    try:
+                        from sentence_transformers import SentenceTransformer
+                        fallback_model = "sentence-transformers/all-mpnet-base-v2"
+                        model = SentenceTransformer(fallback_model)
+                        EmbeddingService._shared_model = model
+                        EmbeddingService._shared_model_name = fallback_model
+                        self._model = model
+                        return
+                    except Exception as fallback_err:
+                        logger.error(f"Fallback embedding model failed: {fallback_err}")
                 raise e
 
     async def embed_text(self, text: str, is_query: bool = False) -> list[float]:

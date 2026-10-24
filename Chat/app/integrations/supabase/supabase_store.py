@@ -238,3 +238,37 @@ class SupabaseStore:
         except Exception as e:
             logger.error(f"Error getting stats from Supabase: {e}")
             return {}
+
+    async def get_fallback_schemes(self, limit: int = 10, region: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Direct database query fallback when vector similarity search is unavailable.
+        """
+        if not self.client:
+            return []
+
+        try:
+            query = self.client.table(self.table_name).select(
+                "id, title, description, eligibility, region, crop_type"
+            )
+            res = query.limit(limit).execute()
+            results = []
+            for row in (res.data or []):
+                results.append({
+                    "id": row.get("id"),
+                    "title": row.get("title", ""),
+                    "description": row.get("description", ""),
+                    "eligibility": row.get("eligibility", ""),
+                    "region": row.get("region", "pan-india"),
+                    "crop_type": row.get("crop_type", "all"),
+                    "scheme_category": "general",
+                    "season": "all",
+                    "land_size_range": "all",
+                    "soil_type": "all",
+                    "scheme_id": str(row.get("id")),
+                    "benefit_amount": "",
+                    "similarity": 0.8,
+                })
+            return results
+        except Exception as e:
+            logger.error(f"Fallback schemes retrieval failed: {e}")
+            return []

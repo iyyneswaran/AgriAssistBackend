@@ -43,8 +43,9 @@ class Settings(BaseSettings):
     GEE_CREDENTIALS_JSON: str | None = Field(None, env="GEE_CREDENTIALS_JSON")
     GEE_CREDENTIALS_B64: str | None = Field(None, env="GEE_CREDENTIALS_B64")
 
-    # HuggingFace (Voice AI)
-    HUGGINGFACE_API_KEY: str | None = Field(None, env="HUGGINGFACE_API_KEY")
+    # HuggingFace (Authentication for gated models like google/embeddinggemma-300m and Voice AI)
+    HF_TOKEN: str | None = Field(None, env="HF_TOKEN")
+    HUGGINGFACE_API_KEY: str | None = Field(None, env="HUGGINGFACE_API_KEY",)
     STT_MODEL_ID: str = "ai4bharat/indic-conformer-600m-multilingual"
     TTS_MODEL_ID: str = "ai4bharat/indic-parler-tts"
     VOICE_LANGUAGE: str = "ta"
@@ -74,3 +75,11 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Ensure Hugging Face tokens are propagated into the environment so huggingface_hub,
+# transformers, and sentence_transformers authenticate automatically.
+_hf_token = getattr(settings, "HF_TOKEN", None) or settings.HUGGINGFACE_API_KEY
+if _hf_token:
+    import os
+    os.environ.setdefault("HF_TOKEN", _hf_token)
+    os.environ.setdefault("HUGGING_FACE_HUB_TOKEN", _hf_token)

@@ -72,15 +72,20 @@ class RagService:
         Recommend relevant agricultural schemes.
         """
 
-        # 2️⃣ Generate embedding
-        embedding = await self.embedding_service.embed_text(enriched_query)
-
-        # 3️⃣ Retrieve from vector store with metadata filters
-        results = await self.retriever.retrieve(
-            embedding=embedding,
-            top_k=top_k + 4,  # Retrieve extra for better re-ranking
-            farm_context=farm_context,
-        )
+        # 2️⃣ Generate embedding & retrieve schemes (with resilient fallback)
+        try:
+            embedding = await self.embedding_service.embed_text(enriched_query)
+            results = await self.retriever.retrieve(
+                embedding=embedding,
+                top_k=top_k + 4,  # Retrieve extra for better re-ranking
+                farm_context=farm_context,
+            )
+        except Exception as e:
+            logger.warning(f"Vector search failed ({e}); falling back to direct database retrieval")
+            results = await self.retriever.store.get_fallback_schemes(
+                limit=top_k + 4,
+                region=farm_context.get("state") if farm_context else None,
+            )
 
         # 4️⃣ Post-filtering / ranking using farm context
         ranked_results = self.ranker.rank(results, farm_context)
