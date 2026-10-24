@@ -44,11 +44,15 @@ class EmbeddingService:
                     or os.environ.get("HUGGING_FACE_HUB_TOKEN")
                 )
 
-                logger.info(f"Loading embedding model: {self.model_name}")
+                import torch
+                model_kwargs = {"torch_dtype": torch.bfloat16}
+
+                logger.info(f"Loading embedding model: {self.model_name} (bfloat16)")
                 model = SentenceTransformer(
                     self.model_name,
                     trust_remote_code=True,
                     token=hf_token,
+                    model_kwargs=model_kwargs,
                 )
                 logger.info("Embedding model loaded successfully.")
                 EmbeddingService._shared_model = model

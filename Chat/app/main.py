@@ -113,19 +113,6 @@ async def startup_event():
         print("[WARN] Push Notifications: VAPID keys not configured")
     print("[OK] Agri AI Backend Started")
 
-    # Pre-warm embedding model in the background so the first scheme request has zero latency
-    import asyncio
-    async def _prewarm_embeddings():
-        try:
-            from app.services.rag.embedding_service import EmbeddingService
-            service = EmbeddingService()
-            await asyncio.to_thread(service._ensure_model)
-            logger.info("[Startup] Embedding model pre-warmed successfully in background")
-        except Exception as prewarm_err:
-            logger.warning(f"[Startup] Background embedding pre-warm notice: {prewarm_err}")
-
-    asyncio.create_task(_prewarm_embeddings())
-
 
 @app.on_event("shutdown")
 async def shutdown_event():
