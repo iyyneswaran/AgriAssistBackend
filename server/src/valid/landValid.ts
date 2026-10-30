@@ -3,11 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 
 const validate = (schema: ZodObject<any>) => async (req: Request, res: Response, next: NextFunction) => {
     try {
-        await schema.parseAsync({
+        const parsed = await schema.parseAsync({
             body: req.body,
             query: req.query,
             params: req.params,
         });
+        req.body = parsed.body;
         return next();
     } catch (error: any) {
         return res.status(400).json({
@@ -18,6 +19,10 @@ const validate = (schema: ZodObject<any>) => async (req: Request, res: Response,
 };
 
 export const AreaUnitEnum = z.enum(['HECTARE', 'ACRE', 'GROUND', 'CENT']);
+const cornersSchema = z.array(z.object({
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+})).max(100).optional();
 
 export const registerLandValidation = validate(z.object({
     body: z.object({
@@ -30,7 +35,9 @@ export const registerLandValidation = validate(z.object({
         district: z.string().min(2, "District is required"),
         state: z.string().min(2, "State is required"),
         preferredLanguage: z.string().default("en"),
-        notificationPref: z.string().default("PUSH")
+        notificationPref: z.string().default("PUSH"),
+        corners: cornersSchema,
+        plantedCropManual: z.string().max(200).nullable().optional(),
     })
 }));
 
@@ -44,6 +51,8 @@ export const updateLandValidation = validate(z.object({
         longitude: z.number().min(-180).max(180).optional(),
         district: z.string().min(2).optional(),
         state: z.string().min(2).optional(),
+        corners: cornersSchema,
+        plantedCropManual: z.string().max(200).nullable().optional(),
     })
 }));
 
@@ -51,6 +60,7 @@ export const fieldValidation = validate(z.object({
     body: z.object({
         name: z.string().min(2),
         area: z.number().positive().optional(),
-        unit: AreaUnitEnum.optional()
+        unit: AreaUnitEnum.optional(),
+        areaUnit: AreaUnitEnum.optional(),
     })
 }));

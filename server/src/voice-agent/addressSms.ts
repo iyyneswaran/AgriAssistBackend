@@ -108,7 +108,7 @@ addressSmsRouter.get('/request-address', async (req: Request, res: Response) => 
 
 /** GET /stored-address?phone=+917550205578 — retrieve the stored address */
 addressSmsRouter.get('/stored-address', (req: Request, res: Response) => {
-    const phone = req.query.phone as string;
+    const phone = req.user!.phoneNumber;
 
     if (!phone) {
         res.status(400).json({ success: false, error: 'Missing ?phone= parameter' });

@@ -5,6 +5,7 @@ from app.services.chat.chat_service import generate_ai_response
 from app.services.chat.streaming_service import stream_tokens
 from app.db.session import AsyncSessionLocal
 from app.db.repositories.message_repo import MessageRepository
+from app.db.repositories.conversation_repo import ConversationRepository
 from app.db.models.message import MessageSender
 import uuid
 import logging
@@ -19,6 +20,7 @@ router = APIRouter()
 async def chat_socket(websocket: WebSocket):
     user_id = None
     session_id = None
+    connected = False
 
     try:
         # Must accept the connection FIRST, then authenticate
@@ -36,7 +38,14 @@ async def chat_socket(websocket: WebSocket):
             await websocket.close(code=1008)
             return
 
+        async with AsyncSessionLocal() as db:
+            conversation = await ConversationRepository.get_by_id(db, session_id)
+            if conversation is None or conversation.userId != user_id:
+                await websocket.send_json({'type': 'error', 'detail': 'Conversation not found'})
+                await websocket.close(code=1008)
+                return
         await manager.connect(user_id, session_id, websocket)
+        connected = True
         logger.info(f"[WS] Connected: user={user_id}, session={session_id}")
 
         while True:
@@ -117,7 +126,7 @@ async def chat_socket(websocket: WebSocket):
                 try:
                     await manager.send_personal_message(
                         session_id,
-                        {"type": "error", "detail": f"Processing failed: {str(e)}"}
+                        {"type": "error", "detail": "Message processing failed"}
                     )
                 except:
                     break
@@ -127,11 +136,11 @@ async def chat_socket(websocket: WebSocket):
     except Exception as e:
         logger.error(f"[WS] Top-level error: {traceback.format_exc()}")
         try:
-            await websocket.send_json({"type": "error", "detail": str(e)})
+            await websocket.send_json({"type": "error", "detail": "Chat connection failed"})
             await websocket.close(code=1011)
         except:
             pass
     finally:
-        if user_id and session_id:
-            await manager.disconnect(user_id, session_id)
+        if connected:
+            await manager.disconnect(user_id, session_id, websocket)
             logger.info(f"[WS] Cleaned up: user={user_id}, session={session_id}")

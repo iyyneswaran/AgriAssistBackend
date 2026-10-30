@@ -8,6 +8,7 @@ const twilio_1 = __importDefault(require("twilio"));
 const llm_1 = require("./llm");
 const sms_1 = require("./sms");
 const crypto_1 = __importDefault(require("crypto"));
+const security_1 = require("./security");
 /** Temporarily holds LLM responses for pending fallback calls. */
 const pendingFallbackCalls = new Map();
 // Clean up stale fallback entries older than 10 minutes
@@ -37,9 +38,11 @@ const networkFallbackRouter = (0, express_1.Router)();
  *   channel     – "sms" | "call"
  */
 networkFallbackRouter.post('/network-fallback', async (req, res) => {
-    const { chatId, failedQuery, phoneNumber, channel } = req.body ?? {};
+    const { failedQuery, channel } = req.body ?? {};
+    const phoneNumber = req.user.phoneNumber;
+    const chatId = phoneNumber;
     // ── Validation ──────────────────────────────
-    if (!chatId || !failedQuery || !phoneNumber || !channel) {
+    if (!chatId || typeof failedQuery !== 'string' || !failedQuery.trim() || failedQuery.length > 5000 || !phoneNumber || !channel) {
         res.status(400).json({
             success: false,
             error: 'Missing required fields: chatId, failedQuery, phoneNumber, channel',
@@ -106,7 +109,7 @@ networkFallbackRouter.post('/fallback-voice-twiml', (req, res) => {
         // Graceful fallback if the entry expired or ID is invalid
         twiml.say('Hi, this is your AI assistant. It seems there was a network issue. How can I help you?');
         const connect = twiml.connect();
-        connect.stream({ url: `wss://${req.headers.host}/media-stream` });
+        connect.stream({ url: (0, security_1.publicVoiceUrl)('/media-stream').replace('https:', 'wss:') });
     }
     else {
         // Speak the welcome + the answer to the failed query
@@ -115,7 +118,7 @@ networkFallbackRouter.post('/fallback-voice-twiml', (req, res) => {
             `Here is the answer: ${entry.response}`);
         // Connect to live AI conversation so the user can keep talking
         const connect = twiml.connect();
-        connect.stream({ url: `wss://${req.headers.host}/media-stream` });
+        connect.stream({ url: (0, security_1.publicVoiceUrl)('/media-stream').replace('https:', 'wss:') });
         // Clean up
         pendingFallbackCalls.delete(fallbackId);
         console.log(`📞 Fallback call TwiML served for ID: ${fallbackId}`);

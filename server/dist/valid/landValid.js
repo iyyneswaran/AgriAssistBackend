@@ -4,11 +4,12 @@ exports.fieldValidation = exports.updateLandValidation = exports.registerLandVal
 const zod_1 = require("zod");
 const validate = (schema) => async (req, res, next) => {
     try {
-        await schema.parseAsync({
+        const parsed = await schema.parseAsync({
             body: req.body,
             query: req.query,
             params: req.params,
         });
+        req.body = parsed.body;
         return next();
     }
     catch (error) {
@@ -19,6 +20,10 @@ const validate = (schema) => async (req, res, next) => {
     }
 };
 exports.AreaUnitEnum = zod_1.z.enum(['HECTARE', 'ACRE', 'GROUND', 'CENT']);
+const cornersSchema = zod_1.z.array(zod_1.z.object({
+    lat: zod_1.z.number().min(-90).max(90),
+    lng: zod_1.z.number().min(-180).max(180),
+})).max(100).optional();
 exports.registerLandValidation = validate(zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z.string().min(2, "Land name must be at least 2 characters"),
@@ -30,7 +35,9 @@ exports.registerLandValidation = validate(zod_1.z.object({
         district: zod_1.z.string().min(2, "District is required"),
         state: zod_1.z.string().min(2, "State is required"),
         preferredLanguage: zod_1.z.string().default("en"),
-        notificationPref: zod_1.z.string().default("PUSH")
+        notificationPref: zod_1.z.string().default("PUSH"),
+        corners: cornersSchema,
+        plantedCropManual: zod_1.z.string().max(200).nullable().optional(),
     })
 }));
 exports.updateLandValidation = validate(zod_1.z.object({
@@ -43,13 +50,16 @@ exports.updateLandValidation = validate(zod_1.z.object({
         longitude: zod_1.z.number().min(-180).max(180).optional(),
         district: zod_1.z.string().min(2).optional(),
         state: zod_1.z.string().min(2).optional(),
+        corners: cornersSchema,
+        plantedCropManual: zod_1.z.string().max(200).nullable().optional(),
     })
 }));
 exports.fieldValidation = validate(zod_1.z.object({
     body: zod_1.z.object({
         name: zod_1.z.string().min(2),
         area: zod_1.z.number().positive().optional(),
-        unit: exports.AreaUnitEnum.optional()
+        unit: exports.AreaUnitEnum.optional(),
+        areaUnit: exports.AreaUnitEnum.optional(),
     })
 }));
 //# sourceMappingURL=landValid.js.map

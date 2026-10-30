@@ -11,7 +11,7 @@ export declare const getConversationMessages: (req: Request, res: Response) => P
 /**
  * Start a new AI Conversation (The Folder)
  */
-export declare const startConversation: (req: Request, res: Response) => Promise<void>;
+export declare const startConversation: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 /**
  * Add a message to a conversation (The Message Inside)
  */

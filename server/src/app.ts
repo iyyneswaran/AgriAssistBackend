@@ -13,6 +13,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:3000",
+  ...(process.env.ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(value => value && value !== '*'),
 ];
 
 app.use(cors({
@@ -20,16 +21,11 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, server-to-server, curl)
     if (!origin) return callback(null, true);
 
-    // Allow known frontend domains or any preview deployment on Vercel
-    if (
-      allowedOrigins.includes(origin) ||
-      /^https:\/\/.*\.vercel\.app$/.test(origin)
-    ) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
 
-    // Fallback: allow and reflect origin
-    return callback(null, true);
+    return callback(null, false);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

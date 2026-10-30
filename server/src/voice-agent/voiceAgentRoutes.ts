@@ -1,7 +1,11 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, urlencoded } from 'express';
+import rateLimit from 'express-rate-limit';
+import { verifyAccessToken } from '../valid/jwt';
+import authorizeRole from '../valid/role';
+import { ownPhone, publicVoiceUrl, validTwilioSignature, verifyTwilioWebhook } from './security';
 import twilio from 'twilio';
 import { WebSocketServer, WebSocket } from 'ws';
-import { Server as HttpServer } from 'http';
+import { Server as HttpServer, IncomingMessage } from 'http';
 import { connectToElevenLabs } from './llm';
 import smsRouter from './sms';
 import addressSmsRouter from './addressSms';
@@ -13,6 +17,25 @@ import networkFallbackRouter from './networkFallback';
 // ─────────────────────────────────────────────
 
 const voiceAgentRouter = Router();
+
+const providerPaths = new Set(['/sms-inbound', '/voice', '/incoming-call', '/fallback-voice-twiml']);
+const routePath = (req: Request) => req.path.toLowerCase().replace(/\/+$/, '') || '/';
+voiceAgentRouter.use(urlencoded({ extended: false, limit: '32kb' }));
+voiceAgentRouter.use((req, res, next) => {
+    if (req.method === 'GET' && routePath(req) === '/health') return next();
+    if (providerPaths.has(routePath(req))) return verifyTwilioWebhook(req, res, next);
+    return verifyAccessToken(req, res, next);
+});
+const voiceLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, limit: 5,
+    keyGenerator: req => req.user!.id,
+});
+voiceAgentRouter.use((req, res, next) => {
+    if (providerPaths.has(routePath(req)) || routePath(req) === '/health') return next();
+    return voiceLimiter(req, res, next);
+});
+voiceAgentRouter.use(['/sms-outbound', '/request-address'], authorizeRole('ADMIN'));
+voiceAgentRouter.use(['/make-call', '/network-fallback', '/stored-address'], ownPhone);
 
 // Mount sub-routers
 voiceAgentRouter.use('/', smsRouter);
@@ -31,7 +54,7 @@ voiceAgentRouter.post('/voice', (req: Request, res: Response) => {
 
     const connect = response.connect();
     connect.stream({
-        url: `wss://${req.headers.host}/media-stream`
+        url: publicVoiceUrl('/media-stream').replace('https:', 'wss:')
     });
 
     res.type('text/xml');
@@ -48,7 +71,7 @@ voiceAgentRouter.post('/incoming-call', (req: Request, res: Response) => {
 
     const connect = response.connect();
     connect.stream({
-        url: `wss://${req.headers.host}/media-stream`
+        url: publicVoiceUrl('/media-stream').replace('https:', 'wss:')
     });
 
     res.type('text/xml');
@@ -57,8 +80,7 @@ voiceAgentRouter.post('/incoming-call', (req: Request, res: Response) => {
 
 // Endpoint to trigger outbound call
 voiceAgentRouter.post('/make-call', async (req: Request, res: Response) => {
-    const { phoneNumber } = req.body ?? {};
-    const to = phoneNumber || process.env.VOICE_AGENT_MY_PHONE_NUMBER!;
+    const to = req.user!.phoneNumber;
 
     try {
         const twilioClient = twilio(
@@ -87,14 +109,20 @@ voiceAgentRouter.post('/make-call', async (req: Request, res: Response) => {
 // ─────────────────────────────────────────────
 
 export function setupVoiceAgentWebSocket(server: HttpServer): void {
-    const wss = new WebSocketServer({ server, path: '/media-stream' });
+    const wss = new WebSocketServer({
+        server, path: '/media-stream', maxPayload: 64 * 1024,
+        verifyClient: (info: { req: IncomingMessage }) => validTwilioSignature(info.req, info.req.url || '/media-stream', {}, true),
+    });
 
     wss.on('connection', (twilioWs: WebSocket) => {
         let streamSid: string | null = null;
         let elevenLabsWs: WebSocket | null = null;
 
         twilioWs.on('message', (data: string) => {
-            const message = JSON.parse(data);
+            let message: any;
+            try { message = JSON.parse(data.toString()); }
+            catch { twilioWs.close(1008, 'Invalid message'); return; }
+            if (!message || typeof message !== 'object') { twilioWs.close(1008); return; }
 
             switch (message.event) {
                 case 'connected':
@@ -102,6 +130,10 @@ export function setupVoiceAgentWebSocket(server: HttpServer): void {
                     break;
 
                 case 'start':
+                    if (elevenLabsWs || typeof message.start?.streamSid !== 'string') {
+                        twilioWs.close(1008, 'Invalid stream start');
+                        return;
+                    }
                     streamSid = message.start.streamSid;
                     console.log('🎙️ Call started - StreamSid:', streamSid);
 
@@ -114,7 +146,7 @@ export function setupVoiceAgentWebSocket(server: HttpServer): void {
                     break;
 
                 case 'media':
-                    if (elevenLabsWs?.readyState === WebSocket.OPEN) {
+                    if (elevenLabsWs?.readyState === WebSocket.OPEN && typeof message.media?.payload === 'string') {
                         elevenLabsWs.send(JSON.stringify({
                             user_audio_chunk: message.media.payload
                         }));

@@ -33,9 +33,10 @@ class Settings(BaseSettings):
 
     # Sensor Hardware
     SENSOR_HARDWARE_URL: str | None = Field(None, env="SENSOR_HARDWARE_URL")
+    SENSOR_OWNER_USER_ID: str | None = None
 
     # Allowed CORS Origins (comma separated)
-    ALLOWED_ORIGINS: str = "*"
+    ALLOWED_ORIGINS: str = "https://agri-assist-frontend-seven.vercel.app,http://localhost:5173,http://localhost:5174,http://localhost:3000"
 
     # Google Earth Engine
     GOOGLE_APPLICATION_CREDENTIALS: str | None = None

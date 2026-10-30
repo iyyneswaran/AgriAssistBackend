@@ -1,7 +1,7 @@
 import os
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from app.core.security import get_current_user, verify_role
+from app.core.security import authenticated_user, verify_role
 from app.core.rate_limiter import rate_limit_dependency
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -16,7 +16,7 @@ class InitiateCallRequest(BaseModel):
 @router.post("/initiate-call", dependencies=[Depends(rate_limit_dependency)])
 async def initiate_call(
     payload: InitiateCallRequest,
-    user=Depends(get_current_user),
+    user=Depends(authenticated_user),
 ):
     verify_role(user, "ADMIN")
 
@@ -27,11 +27,12 @@ async def initiate_call(
 
 
 @router.post("/ingest-schemes")
-async def ingest_schemes():
+async def ingest_schemes(user=Depends(authenticated_user)):
     """
     Trigger ingestion of scheme documents from the rag_documents folder.
     Clears existing index and re-ingests all documents.
     """
+    verify_role(user, 'ADMIN')
     try:
         from app.services.rag.ingestion_service import IngestionService
         ingestion_service = IngestionService()
@@ -45,4 +46,4 @@ async def ingest_schemes():
         
         return {"status": "success", "message": "Scheme data ingested successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ingestion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail='Scheme ingestion failed')

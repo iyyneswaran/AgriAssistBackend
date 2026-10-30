@@ -47,7 +47,7 @@ def _validate_upload(file: UploadFile) -> None:
 
 async def _read_and_validate_bytes(file: UploadFile) -> bytes:
     """Read file bytes with size validation."""
-    contents = await file.read()
+    contents = await file.read(MAX_UPLOAD_SIZE + 1)
 
     if len(contents) > MAX_UPLOAD_SIZE:
         raise HTTPException(

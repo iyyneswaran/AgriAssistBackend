@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
+from app.core.security import authenticated_user
+from app.middleware.body_limit import BodySizeLimit
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Agri AI Backend",
     version="1.0.0",
-    debug=True,
+    debug=settings.DEBUG,
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url=None,
 )
@@ -58,13 +60,12 @@ allowed_origins_list = [
 if settings.ALLOWED_ORIGINS:
     for o in settings.ALLOWED_ORIGINS.split(","):
         o = o.strip()
-        if o and o not in allowed_origins_list:
+        if o and o != '*' and o not in allowed_origins_list:
             allowed_origins_list.append(o)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins_list,
-    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,15 +73,16 @@ app.add_middleware(
 
 
 # Register Routers
+app.add_middleware(BodySizeLimit)
 app.include_router(chat_ws_router, prefix="/ws")
-app.include_router(chat_router, prefix="/api")
-app.include_router(voice_router, prefix="/api")
-app.include_router(offline_router, prefix="/api")
+app.include_router(chat_router, prefix="/api", dependencies=[Depends(authenticated_user)])
+app.include_router(voice_router, prefix="/api", dependencies=[Depends(authenticated_user)])
+app.include_router(offline_router, prefix="/api", dependencies=[Depends(authenticated_user)])
 app.include_router(admin_router, prefix="/api")
-app.include_router(geo_router)
+app.include_router(geo_router, dependencies=[Depends(authenticated_user)])
 app.include_router(schemes_router, prefix="/api")
 app.include_router(sensor_router, prefix="/api")
-app.include_router(scan_router, prefix="/api")
+app.include_router(scan_router, prefix="/api", dependencies=[Depends(authenticated_user)])
 
 # Notification system routes
 app.include_router(push_router, prefix="/api")

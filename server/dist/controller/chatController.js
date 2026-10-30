@@ -105,6 +105,16 @@ const startConversation = async (req, res) => {
     try {
         const user = req.user;
         const { fieldId, cropAssignmentId } = req.body;
+        if (fieldId && !await db_1.db.field.findFirst({
+            where: { id: fieldId, land: { farmer: { userId: user.id } } }
+        })) {
+            return res.status(404).json({ message: 'Field not found' });
+        }
+        if (cropAssignmentId && !await db_1.db.cropAssignment.findFirst({
+            where: { id: cropAssignmentId, field: { land: { farmer: { userId: user.id } } } }
+        })) {
+            return res.status(404).json({ message: 'Crop assignment not found' });
+        }
         const conversation = await db_1.db.aIConversation.create({
             data: {
                 userId: user.id,

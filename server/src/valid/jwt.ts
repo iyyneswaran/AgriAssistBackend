@@ -9,7 +9,7 @@ export const signAccessToken = (user: any) => {
         throw new Error('JWT_SECRET is not defined');
     }
     return jwt.sign(
-        { id: user.id, phoneNumber: user.phoneNumber, role: user.role },
+        { id: user.id, phoneNumber: user.phoneNumber, role: user.role, token_use: 'access' },
         process.env.JWT_SECRET,
         { expiresIn: '6h', algorithm: 'HS256' }
     );
@@ -20,7 +20,7 @@ export const signRefreshToken = (user: any) => {
         throw new Error('JWT_SECRET is not defined');
     }
     return jwt.sign(
-        { id: user.id },
+        { id: user.id, token_use: 'refresh' },
         process.env.JWT_SECRET,
         { expiresIn: '6h', algorithm: 'HS256' }
     );
@@ -44,8 +44,8 @@ export const verifyAccessToken = (req: Request, res: Response, next: NextFunctio
     }
 
     jwt.verify(token as string, process.env.JWT_SECRET as string, { algorithms: ['HS256'] }, async (err: any, decoded: any) => {
-        if (err) {
-            return res.status(403).json({ message: `Invalid Token: ${err.message}` });
+        if (err || decoded?.token_use !== 'access' || typeof decoded?.id !== 'string' || !decoded.id || typeof decoded?.exp !== 'number') {
+            return res.status(403).json({ message: 'Invalid access token' });
         }
         try {
             const payload = decoded as Payload;
@@ -79,8 +79,8 @@ export const verifyRefreshToken = (req: Request, res: Response, next: NextFuncti
     }
 
     jwt.verify(token as string, process.env.JWT_SECRET as string, { algorithms: ['HS256'] }, async (err: any, decoded: any) => {
-        if (err) {
-            return res.status(403).json({ message: `Invalid RefreshToken: ${err.message}` });
+        if (err || decoded?.token_use !== 'refresh' || typeof decoded?.id !== 'string' || !decoded.id || typeof decoded?.exp !== 'number') {
+            return res.status(403).json({ message: 'Invalid refresh token' });
         }
         try {
             const payload = decoded as Payload;

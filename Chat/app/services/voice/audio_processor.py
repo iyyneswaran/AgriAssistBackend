@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 VOICE_UPLOAD_DIR = "storage/voice_uploads"
 TTS_OUTPUT_DIR = "storage/tts_outputs"
+ALLOWED_AUDIO_EXTENSIONS = {'wav', 'webm', 'ogg', 'mp3', 'm4a', 'flac', 'mp4'}
+MAX_AUDIO_BYTES = 10 * 1024 * 1024
 
 
 def ensure_directories():
@@ -20,6 +22,11 @@ def ensure_directories():
 
 def save_uploaded_audio(file_bytes: bytes, extension: str = "wav") -> str:
     """Save raw uploaded audio bytes to disk."""
+    extension = extension.lower()
+    if extension not in ALLOWED_AUDIO_EXTENSIONS:
+        raise ValueError('Unsupported audio format')
+    if not file_bytes or len(file_bytes) > MAX_AUDIO_BYTES:
+        raise ValueError('Audio must contain between 1 byte and 10 MB')
     ensure_directories()
     filename = f"{uuid.uuid4()}.{extension}"
     file_path = os.path.join(VOICE_UPLOAD_DIR, filename)

@@ -3,7 +3,9 @@ Sensor Data API — Handles IoT sensor data ingestion from ESP32,
 retrieval of latest readings, and advanced analysis computation.
 """
 
-from fastapi import APIRouter, HTTPException, Header, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Header, Query, BackgroundTasks, Depends
+from app.core.security import authenticated_user, require_owner
+from app.core.sensor_security import owns_live_sensor
 from app.schemas.sensor_schemas import SensorDataSubmit, SensorDataResponse, AnalysisItem, AnalysisResponse
 from app.services.analysis.analysis_service import AdvancedAnalysisService
 from app.db.session import AsyncSessionLocal
@@ -50,6 +52,8 @@ async def submit_sensor_data(
 ):
     """Receive sensor data from ESP32 device."""
     _verify_sensor_key(x_sensor_key)
+    if not owns_live_sensor(payload.user_id):
+        raise HTTPException(status_code=403, detail='Sensor is not assigned to this user')
 
     try:
         async with AsyncSessionLocal() as session:
@@ -83,8 +87,9 @@ async def submit_sensor_data(
 # GET /api/sensor-data/latest/{user_id}
 # ─────────────────────────────────────────────
 @router.get("/latest/{user_id}", response_model=SensorDataResponse)
-async def get_latest_sensor_data(user_id: str):
+async def get_latest_sensor_data(user_id: str, user=Depends(authenticated_user)):
     """Get the most recent sensor reading for a user."""
+    require_owner(user, user_id)
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(
@@ -117,8 +122,10 @@ async def get_latest_sensor_data(user_id: str):
 # GET /api/sensor-data/live
 # ─────────────────────────────────────────────
 @router.get("/live")
-async def get_live_hardware_data():
+async def get_live_hardware_data(user=Depends(authenticated_user)):
     """Fetch live sensor data directly from ESP32 hardware via ngrok tunnel (proxied to bypass CORS)."""
+    if not owns_live_sensor(user.get('id') or user.get('sub')):
+        raise HTTPException(status_code=403, detail='Sensor is not assigned to this user')
     try:
         import httpx
         async with httpx.AsyncClient() as client:
@@ -151,11 +158,13 @@ async def get_sensor_analysis(
     user_id: str,
     latitude: float = Query(None),
     longitude: float = Query(None),
+    user=Depends(authenticated_user),
 ):
     """
     Compute advanced analysis combining IoT sensor data with GEE regional
     and Open-Meteo weather data. Returns all 8+ analysis indices.
     """
+    require_owner(user, user_id)
     # 1. Fetch live sensor data from ESP32 hardware via ngrok
     sensor_temp = None
     sensor_humidity = None
@@ -164,6 +173,8 @@ async def get_sensor_analysis(
 
     try:
         import httpx
+        if not owns_live_sensor(user_id):
+            raise ValueError('No live sensor assigned')
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 f"{SENSOR_HARDWARE_URL}/api/sensors",

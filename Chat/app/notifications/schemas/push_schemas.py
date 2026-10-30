@@ -3,6 +3,7 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
+from app.core.push_security import validate_push_endpoint
 
 
 class PushSubscriptionKeys(BaseModel):
@@ -27,9 +28,7 @@ class PushSubscriptionCreate(BaseModel):
     @field_validator("endpoint")
     @classmethod
     def validate_endpoint(cls, value: str) -> str:
-        if not value.startswith("https://"):
-            raise ValueError("Push endpoint must use HTTPS")
-        return value
+        return validate_push_endpoint(value)
 
 
 class PushSubscriptionResponse(BaseModel):

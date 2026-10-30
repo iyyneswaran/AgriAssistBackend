@@ -18,6 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.push_security import validate_push_endpoint, PushSession
 from app.notifications.models.delivery_status import DeliveryStatus
 from app.notifications.models.notification_history import NotificationHistory
 from app.notifications.models.notification_log import NotificationLog
@@ -115,6 +116,7 @@ class PushService:
             return log.id
 
         payload = self.build_payload(
+            user_id=user_id,
             title=title,
             body=body,
             severity=severity,
@@ -156,6 +158,7 @@ class PushService:
     def build_payload(
         self,
         *,
+        user_id: str,
         title: str,
         body: str,
         severity: str,
@@ -169,6 +172,7 @@ class PushService:
         """Serialize the compact payload delivered to the service worker."""
         return json.dumps(
             {
+                "user_id": user_id,
                 "title": title,
                 "body": body,
                 "severity": severity,
@@ -241,21 +245,22 @@ class PushService:
             raise RuntimeError("VAPID keys are not configured")
 
         subscription_info = {
-            "endpoint": subscription.endpoint,
+            "endpoint": validate_push_endpoint(subscription.endpoint),
             "keys": {
                 "p256dh": subscription.p256dh_key,
                 "auth": subscription.auth_key,
             },
         }
 
-        await asyncio.to_thread(
-            webpush,
-            subscription_info=subscription_info,
-            data=payload,
-            vapid_private_key=self.vapid_private_key,
-            vapid_claims=self.vapid_claims,
-            ttl=86400,
-        )
+        def send():
+            with PushSession() as session:
+                return webpush(
+                    subscription_info=subscription_info, data=payload,
+                    vapid_private_key=self.vapid_private_key,
+                    vapid_claims=dict(self.vapid_claims), ttl=86400,
+                    timeout=10, requests_session=session,
+                )
+        await asyncio.to_thread(send)
 
     def _webpush_status_code(self, exc: WebPushException) -> Optional[int]:
         response = getattr(exc, "response", None)

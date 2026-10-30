@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from app.services.chat.chat_service import generate_ai_response
 from app.middleware.rate_limiter import rate_limit
+from app.core.security import authenticated_user
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ from typing import List, Dict, Any
 agent_service = AgentService()
 
 @router.post("/generate")
-async def generate_chat_response(req: Request, request: ChatRequest, _=Depends(rate_limit)):
+async def generate_chat_response(req: Request, request: ChatRequest, _=Depends(rate_limit), user=Depends(authenticated_user)):
     """
     Internal HTTP endpoint for AI chat generation via Sarvam AI.
     Routes to Seva AI Agent with fallback to legacy chat service.
@@ -34,7 +35,7 @@ async def generate_chat_response(req: Request, request: ChatRequest, _=Depends(r
         logger.warning(f"AgentService generation failed ({agent_err}), falling back to chat_service")
         try:
             final_response = await generate_ai_response(
-                user_id="internal",
+                user_id=user.get('id') or user.get('sub'),
                 session_id=request.session_id,
                 language=request.language or "en",
                 content=request.message,

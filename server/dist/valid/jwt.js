@@ -10,14 +10,14 @@ const signAccessToken = (user) => {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not defined');
     }
-    return jsonwebtoken_1.default.sign({ id: user.id, phoneNumber: user.phoneNumber, role: user.role }, process.env.JWT_SECRET, { expiresIn: '6h', algorithm: 'HS256' });
+    return jsonwebtoken_1.default.sign({ id: user.id, phoneNumber: user.phoneNumber, role: user.role, token_use: 'access' }, process.env.JWT_SECRET, { expiresIn: '6h', algorithm: 'HS256' });
 };
 exports.signAccessToken = signAccessToken;
 const signRefreshToken = (user) => {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not defined');
     }
-    return jsonwebtoken_1.default.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '6h', algorithm: 'HS256' });
+    return jsonwebtoken_1.default.sign({ id: user.id, token_use: 'refresh' }, process.env.JWT_SECRET, { expiresIn: '6h', algorithm: 'HS256' });
 };
 exports.signRefreshToken = signRefreshToken;
 const verifyAccessToken = (req, res, next) => {
@@ -34,8 +34,8 @@ const verifyAccessToken = (req, res, next) => {
         return res.status(500).json({ message: "JWT_SECRET not configured" });
     }
     jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] }, async (err, decoded) => {
-        if (err) {
-            return res.status(403).json({ message: `Invalid Token: ${err.message}` });
+        if (err || decoded?.token_use !== 'access' || typeof decoded?.id !== 'string' || !decoded.id || typeof decoded?.exp !== 'number') {
+            return res.status(403).json({ message: 'Invalid access token' });
         }
         try {
             const payload = decoded;
@@ -64,8 +64,8 @@ const verifyRefreshToken = (req, res, next) => {
         return res.status(500).json({ message: "JWT_SECRET not configured" });
     }
     jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] }, async (err, decoded) => {
-        if (err) {
-            return res.status(403).json({ message: `Invalid RefreshToken: ${err.message}` });
+        if (err || decoded?.token_use !== 'refresh' || typeof decoded?.id !== 'string' || !decoded.id || typeof decoded?.exp !== 'number') {
+            return res.status(403).json({ message: 'Invalid refresh token' });
         }
         try {
             const payload = decoded;

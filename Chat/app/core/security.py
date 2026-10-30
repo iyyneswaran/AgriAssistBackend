@@ -1,5 +1,5 @@
 from jose import JWTError, jwt
-from fastapi import HTTPException, status, WebSocket
+from fastapi import Header, HTTPException, status, WebSocket
 from app.core.config import settings
 
 
@@ -9,7 +9,11 @@ def decode_jwt_token(token: str) -> dict:
             token,
             settings.JWT_SECRET,
             algorithms=[settings.JWT_ALGORITHM],
+            options={"require_exp": True},
         )
+        user_id = payload.get('id') or payload.get('sub')
+        if payload.get('token_use') != 'access' or not isinstance(user_id, str) or not user_id:
+            raise JWTError('Invalid access token payload')
         return payload
 
     except JWTError:
@@ -29,6 +33,17 @@ def get_current_user(token: str) -> dict:
         )
 
     return payload
+
+
+def authenticated_user(authorization: str = Header(None)) -> dict:
+    if not authorization or not authorization.startswith('Bearer '):
+        raise HTTPException(status_code=401, detail='Authorization header required')
+    return get_current_user(authorization.split(' ', 1)[1])
+
+
+def require_owner(user: dict, user_id: str) -> None:
+    if (user.get('id') or user.get('sub')) != user_id:
+        raise HTTPException(status_code=403, detail='Access denied')
 
 
 def verify_role(user: dict, required_role: str):
@@ -53,14 +68,10 @@ async def authenticate_websocket(websocket: WebSocket) -> dict | None:
         return None
 
     try:
-        payload = jwt.decode(
-            token,
-            settings.JWT_SECRET,
-            algorithms=[settings.JWT_ALGORITHM],
-        )
+        payload = get_current_user(token)
         return payload
 
-    except JWTError:
+    except (JWTError, HTTPException):
         await websocket.send_json({"type": "error", "detail": "Invalid or expired token"})
         await websocket.close(code=1008)
         return None

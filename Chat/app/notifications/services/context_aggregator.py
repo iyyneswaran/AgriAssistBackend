@@ -14,6 +14,7 @@ from datetime import datetime
 import httpx
 
 from app.core.config import settings
+from app.core.sensor_security import owns_live_sensor
 from app.db.session import AsyncSessionLocal
 from app.db.models.sensor_data import SensorData
 from app.notifications.schemas.event_schemas import FarmContext
@@ -84,7 +85,7 @@ class ContextAggregator:
     async def _fetch_sensor_data(self, context: FarmContext) -> None:
         """Fetch live sensor readings from ESP32 hardware or database."""
         success = False
-        if SENSOR_HARDWARE_URL:
+        if SENSOR_HARDWARE_URL and owns_live_sensor(context.user_id):
             try:
                 async with httpx.AsyncClient() as client:
                     resp = await client.get(

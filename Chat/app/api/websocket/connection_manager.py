@@ -16,8 +16,10 @@ class ConnectionManager:
                 self.user_sessions[user_id] = set()
             self.user_sessions[user_id].add(session_id)
 
-    async def disconnect(self, user_id: str, session_id: str):
+    async def disconnect(self, user_id: str, session_id: str, websocket: WebSocket = None):
         async with self.lock:
+            if websocket is not None and self.active_connections.get(session_id) is not websocket:
+                return
             if session_id in self.active_connections:
                 del self.active_connections[session_id]
 

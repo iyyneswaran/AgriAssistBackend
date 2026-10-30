@@ -17,9 +17,8 @@ export class OTPService {
      */
     static async sendVerification(phoneNumber: string): Promise<void> {
         try {
-            if (!verifyServiceSid) {
-                console.warn(`[TWILIO STUB] Would send OTP to ${phoneNumber} if credentials were set.`);
-                return;
+            if (!verifyServiceSid || !accountSid || !authToken) {
+                throw new Error('OTP verification service is not configured');
             }
 
             await client.verify.v2.services(verifyServiceSid)
@@ -38,9 +37,8 @@ export class OTPService {
      */
     static async checkVerification(phoneNumber: string, code: string): Promise<boolean> {
         try {
-            if (!verifyServiceSid) {
-                console.warn(`[TWILIO STUB] Verifying ${code} for ${phoneNumber} (STUB: always true if code is '123456')`);
-                return code === '123456';
+            if (!verifyServiceSid || !accountSid || !authToken) {
+                return false;
             }
 
             const verificationCheck = await client.verify.v2.services(verifyServiceSid)

@@ -1,5 +1,6 @@
 from app.services.chat.context_builder import build_context
 from app.core.config import settings
+from app.core.sensor_security import owns_live_sensor
 import httpx
 import logging
 import re
@@ -86,6 +87,8 @@ async def generate_ai_response(
     sensor_humidity = "Unknown"
     sensor_moisture = "Unknown"
     try:
+        if not owns_live_sensor(user_id):
+            raise ValueError('No live sensor assigned')
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 f"{SENSOR_HARDWARE_URL}/api/sensors",

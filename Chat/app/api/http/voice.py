@@ -2,12 +2,13 @@
 Voice API Router — Endpoints for STT, TTS, and the full voice pipeline.
 """
 
-from fastapi import APIRouter, UploadFile, File, Depends, Form
+from fastapi import APIRouter, UploadFile, File, Depends, Form, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
+from starlette.background import BackgroundTask
 from app.core.rate_limiter import rate_limit_dependency
 from app.services.voice.stt_service import speech_to_text
 from app.services.voice.tts_service import text_to_speech
-from app.services.voice.audio_processor import save_uploaded_audio, convert_to_wav
+from app.services.voice.audio_processor import save_uploaded_audio, convert_to_wav, MAX_AUDIO_BYTES, ALLOWED_AUDIO_EXTENSIONS
 from app.core.config import settings
 from pathlib import Path
 import logging
@@ -22,13 +23,22 @@ UPLOAD_DIR = Path(__file__).resolve().parents[3] / "storage" / "voice_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
+async def _save_upload(file: UploadFile) -> str:
+    extension = Path(file.filename or 'audio.wav').suffix.lstrip('.').lower()
+    if extension not in ALLOWED_AUDIO_EXTENSIONS:
+        raise HTTPException(status_code=400, detail='Unsupported audio format')
+    content = await file.read(MAX_AUDIO_BYTES + 1)
+    if len(content) > MAX_AUDIO_BYTES:
+        raise HTTPException(status_code=413, detail='Audio exceeds 10 MB')
+    if not content:
+        raise HTTPException(status_code=400, detail='Audio is empty')
+    return save_uploaded_audio(content, extension=extension)
+
+
 @router.post("/upload", dependencies=[Depends(rate_limit_dependency)])
 async def upload_voice(file: UploadFile = File(...)):
     """Upload a voice file (backward-compatible endpoint)."""
-    content = await file.read()
-    file_path = UPLOAD_DIR / file.filename
-    with open(file_path, "wb") as f:
-        f.write(content)
+    file_path = await _save_upload(file)
 
     return JSONResponse(
         {"status": "uploaded", "file_path": str(file_path)}
@@ -48,9 +58,9 @@ async def transcribe_voice(
     lang = language or settings.VOICE_LANGUAGE
 
     # Save uploaded file
-    content = await file.read()
-    ext = file.filename.rsplit(".", 1)[-1] if file.filename and "." in file.filename else "wav"
-    audio_path = save_uploaded_audio(content, extension=ext)
+    audio_path = await _save_upload(file)
+    ext = Path(audio_path).suffix.lstrip('.')
+    original_path = audio_path
 
     # Convert to WAV if not already (browser usually sends webm)
     if ext not in ("wav",):
@@ -63,14 +73,20 @@ async def transcribe_voice(
     except Exception as e:
         logger.error(f"STT error: {e}")
         return JSONResponse(
-            {"error": str(e), "text": "", "language": lang},
+            {"error": "Transcription failed", "text": "", "language": lang},
             status_code=500,
         )
 
 
+    finally:
+        for path in {original_path, audio_path}:
+            if os.path.isfile(path):
+                os.remove(path)
+
+
 @router.post("/synthesize", dependencies=[Depends(rate_limit_dependency)])
 async def synthesize_speech(
-    text: str = Form(...),
+    text: str = Form(..., min_length=1, max_length=5000),
     language: str = Form(default=None),
 ):
     """
@@ -102,10 +118,11 @@ async def synthesize_speech(
             path=audio_path,
             media_type=media_type,
             filename=f"tts_output.{ext}",
+            background=BackgroundTask(os.remove, audio_path),
         )
     except Exception as e:
         logger.error(f"TTS error: {e}")
         return JSONResponse(
-            {"error": str(e)},
+            {"error": "Speech synthesis failed"},
             status_code=500,
         )
